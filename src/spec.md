@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add an invoice upload template download on the Admin “Invoice Management” (Raw Data Upload) page that includes an optional “Ageing Days” column, without impacting upload compatibility.
+**Goal:** Make the post-login onboarding and role/profile bootstrap non-blocking so first-time authenticated users can access the app without getting stuck.
 
 **Planned changes:**
-- Add a visible button/link on the Admin Invoice Management (Raw Data Upload) page to download an invoice upload template (CSV or tab-separated).
-- Update the template header to include all existing required columns plus an additional column named exactly “Ageing Days”.
-- Keep the upload/import behavior compatible: accept files with or without the “Ageing Days” column and ignore any provided “Ageing Days” values during import.
-- Update the “Required columns” help text to state that “Ageing Days” is optional and will be auto-calculated in the app.
+- Update the post-login onboarding flow so missing user profile does not block access (no forced always-open modal); allow continuing to the app with an optional profile setup path.
+- Relax backend authorization for first-time authenticated users so they can read/create their own profile and fetch an effective default role (reject anonymous only).
+- Adjust authenticated routing/layout to handle missing/unknown role gracefully by defaulting to a non-admin experience while data is absent/loading, and only show admin navigation when role is explicitly "admin".
 
-**User-visible outcome:** Admin users can download a template that includes an “Ageing Days” column for their working sheet, and uploads will still succeed whether or not that column is included.
+**User-visible outcome:** After logging in with Internet Identity, users can reach and use the Invoices page even if they have no profile yet, can skip/defer profile setup, and the app remains usable with non-admin navigation unless they are explicitly an admin.

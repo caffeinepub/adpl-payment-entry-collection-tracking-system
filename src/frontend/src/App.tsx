@@ -9,23 +9,15 @@ import PaymentHistoryPage from './pages/payments/PaymentHistoryPage';
 import EditPaymentEntryPage from './pages/payments/EditPaymentEntryPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import AppLayout from './components/layout/AppLayout';
-import ProfileSetupModal from './components/auth/ProfileSetupModal';
 import AccessDeniedScreen from './components/auth/AccessDeniedScreen';
 import { Toaster } from '@/components/ui/sonner';
 
 function RootLayout() {
-  const { identity } = useInternetIdentity();
-  const { userProfile, isLoading: profileLoading, isFetched } = useCurrentUser();
-  const isAuthenticated = !!identity;
-
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
-
   return (
     <>
       <AppLayout>
         <Outlet />
       </AppLayout>
-      {showProfileSetup && <ProfileSetupModal />}
       <Toaster />
     </>
   );

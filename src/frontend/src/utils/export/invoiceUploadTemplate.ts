@@ -4,14 +4,15 @@
  */
 export function downloadInvoiceUploadTemplate(): void {
   // Define headers including the optional "Ageing Days" column
+  // positioned immediately after "Invoice Date" for salesman convenience
   const headers = [
     'Retailer Code',
     'Retailer Name',
     'Invoice Number',
     'Invoice Date',
+    'Ageing Days',
     'Salesman Name',
     'Balance Amount',
-    'Ageing Days',
   ];
 
   // Create CSV content with headers only (no sample data)

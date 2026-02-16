@@ -7,7 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
-export default function ProfileSetupModal() {
+interface ProfileSetupModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export default function ProfileSetupModal({ open, onOpenChange }: ProfileSetupModalProps) {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
@@ -29,7 +34,9 @@ export default function ProfileSetupModal() {
     try {
       await actor.saveCallerUserProfile({ name: name.trim(), role });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
       toast.success('Profile created successfully');
+      onOpenChange(false);
     } catch (error: any) {
       toast.error(error.message || 'Failed to save profile');
     } finally {
@@ -37,18 +44,22 @@ export default function ProfileSetupModal() {
     }
   };
 
+  const handleSkip = () => {
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={true}>
-      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Welcome to ADPL</DialogTitle>
           <DialogDescription>
-            Please set up your profile to continue
+            Set up your profile to personalize your experience
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div>
-            <Label htmlFor="name">Your Name *</Label>
+            <Label htmlFor="name">Your Name</Label>
             <Input
               id="name"
               value={name}
@@ -70,16 +81,21 @@ export default function ProfileSetupModal() {
               <option value="admin">Admin</option>
             </select>
           </div>
-          <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              'Continue'
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleSave} disabled={saving} className="flex-1">
+              {saving ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                'Save Profile'
+              )}
+            </Button>
+            <Button onClick={handleSkip} variant="outline" disabled={saving} className="flex-1">
+              Skip for now
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

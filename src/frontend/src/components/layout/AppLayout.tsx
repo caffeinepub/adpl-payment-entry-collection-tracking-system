@@ -3,13 +3,14 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { LogOut, LayoutDashboard, FileText, DollarSign, BarChart3, Menu } from 'lucide-react';
+import { LogOut, LayoutDashboard, FileText, BarChart3, Menu } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import ProfileSetupPrompt from '../auth/ProfileSetupPrompt';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { identity, clear } = useInternetIdentity();
-  const { userProfile, userRole } = useCurrentUser();
+  const { userProfile, userRole, isFetched } = useCurrentUser();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,6 +20,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     queryClient.clear();
     navigate({ to: '/' });
   };
+
+  const isAuthenticated = !!identity;
+  const showProfilePrompt = isAuthenticated && isFetched && userProfile === null;
 
   const navItems = [
     ...(userRole === 'admin' ? [{ label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' }] : []),
@@ -66,7 +70,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {userProfile && (
                   <div className="hidden sm:block text-sm">
                     <p className="font-medium">{userProfile.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{userRole}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{userRole || 'user'}</p>
                   </div>
                 )}
                 <Button variant="outline" size="sm" onClick={handleLogout} className="hidden md:flex">
@@ -84,7 +88,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       {userProfile && (
                         <div className="pb-4 border-b">
                           <p className="font-medium">{userProfile.name}</p>
-                          <p className="text-sm text-muted-foreground capitalize">{userRole}</p>
+                          <p className="text-sm text-muted-foreground capitalize">{userRole || 'user'}</p>
                         </div>
                       )}
                       <nav className="flex flex-col gap-2">
@@ -104,6 +108,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8">
+        {showProfilePrompt && <ProfileSetupPrompt />}
         {children}
       </main>
 

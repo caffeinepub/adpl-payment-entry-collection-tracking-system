@@ -1,40 +1,67 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T03:15:06.328Z",
+  "generatedAt": "2026-02-16T03:55:46.421Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-22",
-        "summary": "Add a downloadable invoice upload template on the Admin \"Invoice Management\" (Raw Data Upload) page that includes an \"Ageing Days\" column in the header so users can include it in their working sheet, while keeping the upload parser compatible (Ageing Days must remain optional and ignored during import).",
+        "id": "REQ-24",
+        "summary": "Update the post-login onboarding so that a missing user profile does not block access to the app. Specifically, when the authenticated user has no saved profile, do not force a modal that prevents interacting with the app; instead allow the user to continue and optionally complete profile setup.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/export/invoiceUploadTemplate.ts",
-          "frontend/src/pages/admin/RawDataUploadPage.tsx",
-          "frontend/src/utils/excel/parseInvoicesXlsx.ts"
+          "frontend/src/App.tsx",
+          "frontend/src/components/auth/ProfileSetupModal.tsx",
+          "frontend/src/components/auth/ProfileSetupPrompt.tsx",
+          "frontend/src/components/layout/AppLayout.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/utils/export/invoiceUploadTemplate.ts",
-          "frontend/src/pages/admin/RawDataUploadPage.tsx",
-          "frontend/src/utils/excel/parseInvoicesXlsx.ts"
+          "frontend/src/App.tsx",
+          "frontend/src/components/auth/ProfileSetupModal.tsx",
+          "frontend/src/components/auth/ProfileSetupPrompt.tsx",
+          "frontend/src/components/layout/AppLayout.tsx"
+        ]
+      },
+      {
+        "id": "REQ-25",
+        "summary": "Relax backend authorization for basic user bootstrap so newly authenticated principals can read/create their own profile and fetch their effective role without being pre-granted permissions. Ensure these methods only reject anonymous callers, not first-time authenticated users.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-26",
+        "summary": "Adjust authenticated routing and layout rendering to handle users with missing/unknown role gracefully (treat as a non-admin default) so the UI remains usable while profile/role data loads or is absent.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useCurrentUser.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/AppLayout.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useCurrentUser.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/layout/AppLayout.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/admin/RawDataUploadPage.tsx",
-    "frontend/src/utils/excel/parseInvoicesXlsx.ts",
-    "frontend/src/utils/export/invoiceUploadTemplate.ts",
+    "frontend/src/App.tsx",
+    "frontend/src/components/auth/ProfileSetupModal.tsx",
+    "frontend/src/components/auth/ProfileSetupPrompt.tsx",
+    "frontend/src/components/layout/AppLayout.tsx",
+    "frontend/src/hooks/useCurrentUser.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -28,10 +28,13 @@ export function useCurrentUser() {
     retry: false,
   });
 
+  const userRole = roleQuery.data || 'user';
+  const isStillLoading = actorFetching || (roleQuery.isLoading && !roleQuery.isError);
+
   return {
     userProfile: profileQuery.data,
-    userRole: roleQuery.data,
-    isLoading: actorFetching || profileQuery.isLoading || roleQuery.isLoading,
+    userRole: userRole,
+    isLoading: isStillLoading,
     isFetched: !!actor && profileQuery.isFetched,
     isAdmin: roleQuery.data === 'admin',
   };

@@ -1,32 +1,62 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Invoice upload template download with optional Ageing Days column",
+  "title": "Non-blocking onboarding and graceful role defaults",
   "requirements": [
     {
-      "id": "REQ-22",
-      "summary": "Add a downloadable invoice upload template containing an optional \"Ageing Days\" column, and update UI help text and parser compatibility expectations.",
+      "id": "REQ-24",
+      "summary": "Make missing-profile onboarding non-blocking so users can access the app and optionally complete profile setup later.",
       "acceptanceCriteria": [
-        "On the Admin Invoice Management (Raw Data Upload) page, provide a visible action (e.g., a button/link) to download an invoice upload template file (CSV or tab-separated text is acceptable).",
-        "The downloaded template header row includes all existing required columns plus an additional column named exactly \"Ageing Days\".",
-        "Uploading a file that includes the \"Ageing Days\" column still succeeds as long as the existing required columns are present; the importer ignores the \"Ageing Days\" values and does not require the column.",
-        "The \"Required columns\" help text on the upload card is updated to clarify that \"Ageing Days\" is optional and will be auto-calculated in the app."
+        "After logging in with Internet Identity, the user can reach the Invoices page even if no user profile exists yet.",
+        "The app does not show an always-open modal that prevents clicking elsewhere when the profile is missing.",
+        "If profile setup UI is shown, it includes a clear non-destructive option to defer/skip and continue using the app."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/export/invoiceUploadTemplate.ts",
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Remove the always-open blocking onboarding modal behavior by changing RootLayout so it does not unconditionally render ProfileSetupModal when userProfile is null; instead, render a non-blocking prompt entry point (e.g., banner/toast/inline callout) that lets the user continue using the app. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
+          "operation": "modify",
+          "description": "Refactor the profile setup UI so it can be opened/closed by the user (controlled open state via props) and add a clear English \"Skip for now\" / \"Not now\" action that dismisses without saving; ensure it no longer prevents interacting with the rest of the app by default (no forced open=true, no outside-click prevention for the non-blocking flow). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/ProfileSetupPrompt.tsx",
           "operation": "create",
-          "description": "Create a small utility that generates the invoice upload template content (CSV or tab-separated) with the required headers plus an additional header named exactly \"Ageing Days\", and triggers a browser download with a sensible filename."
+          "description": "Create a small, non-blocking prompt component shown only when authenticated and userProfile is null, offering \"Set up profile\" (opens ProfileSetupModal) and \"Skip for now\" (dismisses prompt) actions, with all user-facing copy in English. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/admin/RawDataUploadPage.tsx",
+          "path": "frontend/src/components/layout/AppLayout.tsx",
           "operation": "modify",
-          "description": "Add a visible download action (use the existing shadcn-ui Button component to keep styling consistent; verify the component's usage instructions before implementing) to download the invoice upload template, and update the help text under \"Required columns\" to explicitly state that \"Ageing Days\" is optional and will be auto-calculated in the app."
+          "description": "Wire the new ProfileSetupPrompt into the authenticated layout (e.g., below the header within the main container) so it is visible but non-blocking when profile is missing; ensure navigation to Invoices remains available and usable even if the profile is not yet created. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "summary": "Handle missing/unknown role gracefully by defaulting to non-admin UI and avoiding crashes or indefinite loading.",
+      "acceptanceCriteria": [
+        "When authenticated and role is missing/undefined, the app defaults to the non-admin navigation and does not crash or get stuck on a loading state.",
+        "Admin-only navigation items remain hidden unless the resolved role is explicitly \"admin\".",
+        "User-facing text for any new prompts/buttons/toasts is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useCurrentUser.ts",
+          "operation": "modify",
+          "description": "Adjust role fetching state handling so role can be treated as optional: default to a non-admin role when role data is missing/undefined or when role fetching fails, and ensure isLoading does not remain true indefinitely on role-query failure; keep admin detection strict (only true when role === \"admin\"). Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/utils/excel/parseInvoicesXlsx.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Ensure the import parser remains compatible when an \"Ageing Days\" column is present by explicitly treating it as optional/ignored (e.g., documenting and/or safely handling the extra column without requiring it), while continuing to validate only the existing required columns."
+          "description": "Update index/landing routing logic to remain usable while role is loading or missing: avoid blocking the app behind a loading screen longer than necessary, and ensure non-admin default routes (Invoices) render when role is unknown/undefined; keep admin-only rendering guarded by explicit \"admin\" role. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Ensure navigation rendering remains stable when userRole is missing/undefined by treating it as non-admin for UI purposes (admin items hidden unless role is explicitly \"admin\"), and ensure user identity display does not crash when profile is absent. Verify the component's usage instructions before implementing."
         }
       ]
     }

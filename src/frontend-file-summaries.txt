@@ -1,7 +1,7 @@
 {
-  "frontend/src/App.tsx": "Main application component with TanStack Router setup, route definitions for all pages (login, admin dashboard, invoices, payment entry/history/edit, reports), role-based access control with properly named component functions, and profile setup modal integration.",
+  "frontend/src/App.tsx": "Main application component with TanStack Router setup, route definitions for all pages, role-based access control, and simplified root layout without blocking profile modal.",
   "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including invoice management, payment operations, reports data, and a new useClearAllData mutation that clears all invoices and payments with proper cache invalidation.",
-  "frontend/src/hooks/useCurrentUser.ts": "Custom hook that combines Internet Identity and actor hooks to fetch and expose current user profile, role, admin status, and loading states with proper dependency gating.",
+  "frontend/src/hooks/useCurrentUser.ts": "Custom hook that fetches current user profile and role with graceful fallback to 'user' role when role data is missing or fails, preventing indefinite loading states.",
   "frontend/src/pages/LoginPage.tsx": "Clean login page with Internet Identity integration, displaying ADPL branding and handling authentication flow with error recovery.",
   "frontend/src/pages/admin/AdminDashboardPage.tsx": "Admin dashboard showing four summary cards (Total Outstanding, Total Collection, Excess Collection, Pending Balance) with quick navigation to key features and mobile-responsive layout.",
   "frontend/src/pages/admin/RawDataUploadPage.tsx": "Admin invoice management page with CSV/TSV file upload, a \"Download Template\" button for getting the correct file format, search/filter controls, paginated invoice table display, and a \"Danger Zone\" section with data clearing functionality.",
@@ -9,8 +9,8 @@
   "frontend/src/pages/payments/PaymentHistoryPage.tsx": "Payment history view for a retailer showing all recorded payments with timestamp, invoice, type, mode, amount, entered-by, admin-only edit actions, and proper enum comparisons.",
   "frontend/src/pages/payments/EditPaymentEntryPage.tsx": "Admin-only payment edit page allowing modification of payment amount and mode with backend update, cache invalidation, and proper PaymentMode enum usage.",
   "frontend/src/pages/reports/ReportsPage.tsx": "Reports page with filters (date range, salesman, type, mode), summary cards (Total Collected, Total Excess, Pending Balance), retailer-wise ledger table, and CSV export functionality.",
-  "frontend/src/components/layout/AppLayout.tsx": "Shared layout component with ADPL header, role-based navigation menu, user profile display, logout functionality, mobile-responsive sidebar, and footer with required copyright text and caffeine.ai attribution.",
-  "frontend/src/components/auth/ProfileSetupModal.tsx": "Modal dialog for first-time user profile setup capturing name and role, preventing dismissal until profile is saved.",
+  "frontend/src/components/layout/AppLayout.tsx": "Shared layout component with ADPL header, role-based navigation, user profile display, logout functionality, mobile-responsive sidebar, non-blocking profile setup prompt, and footer with attribution.",
+  "frontend/src/components/auth/ProfileSetupModal.tsx": "Controllable modal dialog for user profile setup with open/close state management, skip option, and proper cache invalidation after save.",
   "frontend/src/components/auth/AccessDeniedScreen.tsx": "Access denied screen shown when authenticated users lack required permissions for a route.",
   "frontend/src/components/tables/InvoicesTable.tsx": "Reusable invoice table component with pagination, status badges, action buttons (Pay, History), and a new sortable \"Ageing Days\" column that toggles between oldest-first, newest-first, and no-sort states with visual indicators.",
   "frontend/src/components/payments/PaymentLinesEditor.tsx": "Payment lines editor supporting multiple payment modes (Cash, Cheque, NEFT/RTGS/UPI) with add/remove functionality and mode-specific input fields.",
@@ -28,5 +28,6 @@
   "frontend/docs/publish-live.md": "Comprehensive release checklist documenting pre-deployment verification steps, known limitations, post-deployment smoke tests, and support guidance for the ADPL Payment Tracker app going live.",
   "frontend/src/utils/invoices/normalizeInvoiceStatus.ts": "Utility function that safely normalizes invoice status from string enum values, variant-like objects, or unknown formats into a canonical status key for consistent rendering across the application.",
   "frontend/src/utils/invoices/ageingDays.ts": "Client-side utility functions for parsing invoice date strings into Date objects and calculating ageing days (integer day count from invoice date to today) with safe fallbacks for unparseable dates.",
-  "frontend/src/utils/export/invoiceUploadTemplate.ts": "Utility function that generates and downloads a CSV template file with all required invoice columns plus an optional \"Ageing Days\" column for salesmen to use when preparing upload files."
+  "frontend/src/utils/export/invoiceUploadTemplate.ts": "Utility function that generates and downloads a CSV template file with all required invoice columns plus an optional \"Ageing Days\" column positioned immediately after \"Invoice Date\" for salesman convenience.",
+  "frontend/src/components/auth/ProfileSetupPrompt.tsx": "Non-blocking alert banner prompting authenticated users without profiles to optionally set up their profile, with dismiss and setup actions."
 }

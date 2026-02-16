@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 13,
+  "projectStateVersion": 17,
   "summary": "Build a professional, clean, mobile-friendly Payment Entry and Collection Tracking System web app for ADPL (distribution company), including role-based login, admin dashboard, Excel raw data upload, payment entry with split modes, excess handling, reports/exports, and audit/validation features; layout ready for backend integration.",
   "architectural_notes": [
     "Build as a simple web-based application layout ready for further backend integration.",
@@ -10,12 +10,14 @@
     "Add robust file-type validation and parsing for uploads (XLSX vs CSV) and normalize imported fields to avoid runtime type errors in invoice/status logic.",
     "Add admin-only data lifecycle controls (clear/reset/archive) for uploaded invoices and payment entries to support daily refresh workflows.",
     "Add invoice ageing calculation (Ageing Days = today - invoiceDate) in invoice list views to support prioritizing/clearing oldest invoices first.",
-    "Ensure the Salesman-facing invoice list/template includes an \"Ageing Days\" (overdue) column so salesmen can quickly identify older invoices first (ideally sortable oldest-first)."
+    "Ensure the Salesman-facing invoice list/template includes an \"Ageing Days\" (overdue) column so salesmen can quickly identify older invoices first (ideally sortable oldest-first).",
+    "Revisit login UX strictness: reduce friction/overly strict checks so users can access the app reliably while keeping role-based access control intact."
   ],
   "known_issues": [
     "Previous build attempt failed (AI unable to implement request); user requested retry.",
     "User reports role mismatch: after selecting/saving Admin in UI, app still shows role as User and Upload Excel option remains hidden (possible role assignment/UX issue with Internet Identity-based roles).",
-    "Uploading invoice data as CSV causes runtime error when clicking 'Show Invoice': \"cannot use 'in' operator to search for paid in unpaid\" (likely status field type/shape mismatch after CSV import)."
+    "Uploading invoice data as CSV causes runtime error when clicking 'Show Invoice': \"cannot use 'in' operator to search for paid in unpaid\" (likely status field type/shape mismatch after CSV import).",
+    "User reports the login page is too strict and not usable; requests a less restrictive login flow."
   ],
   "isFixRequest": false,
   "existing_features": [
@@ -178,6 +180,30 @@
         "REQ-22"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-downloadable-invoice-upload-template-so-the-optional-column-header-ageing-days-appears-immediately-after-invoice-date-i-e-placed-next-to-invoice-date-while-keeping-the-column-optional-and-ignored-during-import-parsing",
+      "title": "Update the downloadable invoice upload template so the optional column header \"Ageing Days\" appears immediately after \"Invoice Date\" (i.e., placed next to Invoice Date) while keeping the column optional and ignored during import parsing.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-post-login-onboarding-so-that-a-missing-user-profile-does-not-block-access-to-the-app-specifically-when-the-authenticated-user-has-no-saved-profile-do-not-force-a-modal-that-prevents-interacting-with-the-app-instead-allow-the-user-to-continue-and-optionally-complete-profile-setup",
+      "title": "Update the post-login onboarding so that a missing user profile does not block access to the app. Specifically, when the authenticated user has no saved profile, do not force a modal that prevents interacting with the app; instead allow the user to continue and optionally complete profile setup.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-adjust-authenticated-routing-and-layout-rendering-to-handle-users-with-missing-unknown-role-gracefully-treat-as-a-non-admin-default-so-the-ui-remains-usable-while-profile-role-data-loads-or-is-absent",
+      "title": "Adjust authenticated routing and layout rendering to handle users with missing/unknown role gracefully (treat as a non-admin default) so the UI remains usable while profile/role data loads or is absent.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -285,6 +311,28 @@
       "id": "AR-19",
       "summary": "Add an 'Ageing Days' feature (e.g., column/button) that calculates days from Invoice Date to today to help identify and clear older invoices first",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Add an \"Ageing Days\" column to the downloadable Excel invoice upload template (placed near Invoice Date if possible) while keeping upload parsing compatible by treating the column as optional and ignoring it during import",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Make the login page less strict / more usable (relax overly strict login requirements/flow that blocks user access)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Relax backend authorization for basic user bootstrap so newly authenticated principals can read/create their own profile and fetch their effective role without being pre-granted permissions. Ensure these methods only reject anonymous callers, not first-time authenticated users.",
+      "reqIds": [
+        "REQ-25"
+      ],
       "status": "pending"
     }
   ],

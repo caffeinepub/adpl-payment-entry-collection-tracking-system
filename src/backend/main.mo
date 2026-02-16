@@ -11,8 +11,6 @@ import Int "mo:core/Int";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-
-
 actor {
   // Role-based Access Control
   let accessControlState = AccessControl.initState();
@@ -76,8 +74,8 @@ actor {
 
   // User Profile Management
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view profiles");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Only authenticated users can view profiles");
     };
     userProfiles.get(caller);
   };
@@ -90,8 +88,8 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
+    if (caller.isAnonymous()) {
+      Runtime.trap("Unauthorized: Only authenticated users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
