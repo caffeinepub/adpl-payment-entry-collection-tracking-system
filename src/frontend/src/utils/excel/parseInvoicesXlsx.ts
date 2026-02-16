@@ -9,6 +9,11 @@ const REQUIRED_COLUMNS = [
   'Balance Amount',
 ];
 
+// Optional columns that can be present but will be ignored
+const OPTIONAL_COLUMNS = [
+  'Ageing Days',
+];
+
 // Simple CSV parser for .xlsx files (treating them as CSV)
 function parseCSV(text: string): string[][] {
   const lines = text.split(/\r?\n/);
@@ -52,6 +57,7 @@ export async function parseInvoicesXlsx(file: File): Promise<Invoice[]> {
           return;
         }
 
+        // Find column indexes for required columns
         const columnIndexes = {
           retailerCode: headers.findIndex(h => h.toLowerCase().includes('retailer code')),
           retailerName: headers.findIndex(h => h.toLowerCase().includes('retailer name')),
@@ -60,6 +66,9 @@ export async function parseInvoicesXlsx(file: File): Promise<Invoice[]> {
           salesmanName: headers.findIndex(h => h.toLowerCase().includes('salesman')),
           balanceAmount: headers.findIndex(h => h.toLowerCase().includes('balance')),
         };
+
+        // Note: "Ageing Days" column is optional and will be ignored if present
+        // The app auto-calculates ageing days from Invoice Date
 
         const invoices: Invoice[] = [];
 

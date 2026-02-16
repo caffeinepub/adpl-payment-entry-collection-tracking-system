@@ -1,16 +1,33 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T03:09:42.567Z",
-  "summary": "REQ-21 appears implemented via a new client-side ageing-days utility and a new sortable \"Ageing Days\" column in the invoices table, including safe fallback handling for unparsable dates. REQ-20 appears implemented by showing an admin-only \"Clear Old Data\" control on the Invoice Management page using the existing useClearAllData mutation and an AlertDialog confirmation, but the diff excerpt of RawDataUploadPage.tsx is truncated before the actual button/dialog wiring is fully visible.",
-  "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.74,
+  "generatedAt": "2026-02-16T03:15:06.325Z",
+  "summary": "REQ-22 is mostly implemented: a download template utility was added with an \"Ageing Days\" header, Raw Data Upload page adds a visible \"Download Template\" action, and the upload parser was adjusted to tolerate/ignore an optional \"Ageing Days\" column. However, the required-columns help text update cannot be confirmed from the provided diff, and there appears to be an unrequested change adding a sortable \"Ageing Days\" column to the invoices table (which may conflict with the stated non-goal about not changing ageing sort behavior).",
+  "missing_requirements": [
+    {
+      "id": "REQ-22",
+      "requirement": "Update the \"Required columns\" help text on the upload card to clarify that \"Ageing Days\" is optional and will be auto-calculated in the app.",
+      "reason": "The diff shows the new download button and parser changes, but the RawDataUploadPage.tsx content is truncated and does not include clear evidence that the help text about required/optional columns was updated as specified.",
+      "evidence": [
+        "frontend/src/pages/admin/RawDataUploadPage.tsx (truncated)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Add a new sortable \"Ageing Days\" column to the invoices table with toggling sort states.",
+      "reason": "REQ-22 only asks for adding an \"Ageing Days\" column to the downloadable upload template header and keeping the importer compatible (optional/ignored). It does not request any invoices table column/sort UI changes, and the BuildRequest non-goals explicitly say not to change invoices table ageing sort behavior.",
+      "evidence": [
+        "frontend-file-summaries.txt (InvoicesTable description mentions: \"a new sortable \\\"Ageing Days\\\" column that toggles between oldest-first, newest-first, and no-sort states\")"
+      ]
+    }
+  ],
+  "confidence": 0.7,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/tables/InvoicesTable.tsx",
     "frontend/src/pages/admin/RawDataUploadPage.tsx",
-    "frontend/src/utils/invoices/ageingDays.ts",
+    "frontend/src/utils/excel/parseInvoicesXlsx.ts",
+    "frontend/src/utils/export/invoiceUploadTemplate.ts",
     "project_state.json"
   ]
 }

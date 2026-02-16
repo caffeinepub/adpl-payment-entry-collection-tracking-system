@@ -17,8 +17,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import InvoicesTable from '../../components/tables/InvoicesTable';
 import { parseInvoicesXlsx } from '../../utils/excel/parseInvoicesXlsx';
+import { downloadInvoiceUploadTemplate } from '../../utils/export/invoiceUploadTemplate';
 import { toast } from 'sonner';
-import { Upload, Search, Trash2, AlertTriangle } from 'lucide-react';
+import { Upload, Search, Trash2, AlertTriangle, Download } from 'lucide-react';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { filterInvoices } from '../../utils/filtering/invoiceFilters';
 
@@ -59,6 +60,15 @@ export default function RawDataUploadPage() {
     }
   };
 
+  const handleDownloadTemplate = () => {
+    try {
+      downloadInvoiceUploadTemplate();
+      toast.success('Template downloaded successfully');
+    } catch (error: any) {
+      toast.error('Failed to download template');
+    }
+  };
+
   const filteredInvoices = filterInvoices(invoices, {
     retailerName: searchRetailerName,
     retailerCode: searchRetailerCode,
@@ -88,6 +98,19 @@ export default function RawDataUploadPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                <div className="flex items-center gap-3 pb-4 border-b">
+                  <Button
+                    variant="outline"
+                    onClick={handleDownloadTemplate}
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download Template
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    Download a template file with the correct column headers
+                  </p>
+                </div>
                 <div>
                   <Label htmlFor="file-upload">Select File (CSV or Tab-separated)</Label>
                   <div className="mt-2 flex items-center gap-4">
@@ -119,6 +142,9 @@ export default function RawDataUploadPage() {
                   </ul>
                   <p className="mt-2 text-xs">
                     Note: File should be comma or tab separated. Excel files will be read as text.
+                  </p>
+                  <p className="mt-2 text-xs">
+                    <strong>Ageing Days</strong> column is optional and will be auto-calculated in the app based on Invoice Date.
                   </p>
                 </div>
               </div>

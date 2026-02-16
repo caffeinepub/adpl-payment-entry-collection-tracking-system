@@ -2,10 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-admin-invoice-management-page-to-present-the-existing-destructive-data-reset-action-as-a-clear-clear-old-data-button-admin-only-while-keeping-the-current-confirmation-dialog-safety-step",
-      "featureTitle": "Update the Admin \"Invoice Management\" page to present the existing destructive data reset action as a clear \"Clear Old Data\" button (admin-only) while keeping the current confirmation dialog safety step.",
+      "featureId": "feature-add-a-downloadable-invoice-upload-template-on-the-admin-invoice-management-raw-data-upload-page-that-includes-an-ageing-days-column-in-the-header-so-users-can-include-it-in-their-working-sheet-while-keeping-the-upload-parser-compatible-ageing-days-must-remain-optional-and-ignored-during-import",
+      "featureTitle": "Add a downloadable invoice upload template on the Admin \"Invoice Management\" (Raw Data Upload) page that includes an \"Ageing Days\" column in the header so users can include it in their working sheet, while keeping the upload parser compatible (Ageing Days must remain optional and ignored during import).",
       "files": [
-        "frontend/src/pages/admin/RawDataUploadPage.tsx"
+        "frontend/src/pages/admin/RawDataUploadPage.tsx",
+        "frontend/src/utils/excel/parseInvoicesXlsx.ts",
+        "frontend/src/utils/export/invoiceUploadTemplate.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -16,27 +18,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-20"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-an-ageing-days-feature-to-the-invoices-list-so-users-can-easily-identify-and-prioritize-older-invoices-compute-ageing-as-the-number-of-days-from-each-invoice-s-invoice-date-to-today-display-it-in-the-invoices-table-and-provide-a-ui-control-to-sort-invoices-by-ageing-oldest-first-newest-first",
-      "featureTitle": "Add an \"Ageing Days\" feature to the invoices list so users can easily identify and prioritize older invoices: compute ageing as the number of days from each invoice's Invoice Date to today, display it in the invoices table, and provide a UI control to sort invoices by ageing (oldest first / newest first).",
-      "files": [
-        "frontend/src/components/tables/InvoicesTable.tsx",
-        "frontend/src/utils/invoices/ageingDays.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-21"
+        "REQ-22"
       ],
       "confidence": "high"
     }

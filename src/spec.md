@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Make invoice clean-up safer and easier by clarifying the destructive reset action and adding an “Ageing Days” indicator with sorting in the invoices list.
+**Goal:** Add an invoice upload template download on the Admin “Invoice Management” (Raw Data Upload) page that includes an optional “Ageing Days” column, without impacting upload compatibility.
 
 **Planned changes:**
-- Update the Admin Invoice Management page to show the existing destructive reset action as a clearly labeled **“Clear Old Data”** button (admin-only), while keeping the existing confirmation dialog and existing mutation/toast behavior.
-- Add an **“Ageing Days”** column to the invoices table, computed client-side as the integer number of days from each invoice’s **Invoice Date** to today.
-- Add a UI sort control for **Ageing Days** that toggles between **oldest-first** and **newest-first**, with the current sort direction visible, and ensure it works alongside existing search/filter behavior.
-- Handle unparseable invoice dates safely by displaying a fallback (e.g., “—”) and sorting those rows consistently (e.g., at the bottom) without runtime errors.
+- Add a visible button/link on the Admin Invoice Management (Raw Data Upload) page to download an invoice upload template (CSV or tab-separated).
+- Update the template header to include all existing required columns plus an additional column named exactly “Ageing Days”.
+- Keep the upload/import behavior compatible: accept files with or without the “Ageing Days” column and ignore any provided “Ageing Days” values during import.
+- Update the “Required columns” help text to state that “Ageing Days” is optional and will be auto-calculated in the app.
 
-**User-visible outcome:** Admins see a clearly named “Clear Old Data” button with confirmation before wiping data, and all users can view invoice ageing in days and sort invoices to prioritize the oldest (or newest) invoices.
+**User-visible outcome:** Admin users can download a template that includes an “Ageing Days” column for their working sheet, and uploads will still succeed whether or not that column is included.

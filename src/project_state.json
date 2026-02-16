@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 11,
+  "projectStateVersion": 13,
   "summary": "Build a professional, clean, mobile-friendly Payment Entry and Collection Tracking System web app for ADPL (distribution company), including role-based login, admin dashboard, Excel raw data upload, payment entry with split modes, excess handling, reports/exports, and audit/validation features; layout ready for backend integration.",
   "architectural_notes": [
     "Build as a simple web-based application layout ready for further backend integration.",
@@ -9,7 +9,8 @@
     "Maintain audit metadata on payment entries (timestamp and user who entered/edited).",
     "Add robust file-type validation and parsing for uploads (XLSX vs CSV) and normalize imported fields to avoid runtime type errors in invoice/status logic.",
     "Add admin-only data lifecycle controls (clear/reset/archive) for uploaded invoices and payment entries to support daily refresh workflows.",
-    "Add invoice ageing calculation (Ageing Days = today - invoiceDate) in invoice list views to support prioritizing/clearing oldest invoices first."
+    "Add invoice ageing calculation (Ageing Days = today - invoiceDate) in invoice list views to support prioritizing/clearing oldest invoices first.",
+    "Ensure the Salesman-facing invoice list/template includes an \"Ageing Days\" (overdue) column so salesmen can quickly identify older invoices first (ideally sortable oldest-first)."
   ],
   "known_issues": [
     "Previous build attempt failed (AI unable to implement request); user requested retry.",
@@ -167,6 +168,14 @@
       "title": "Add an \"Ageing Days\" feature to the invoices list so users can easily identify and prioritize older invoices: compute ageing as the number of days from each invoice's Invoice Date to today, display it in the invoices table, and provide a UI control to sort invoices by ageing (oldest first / newest first).",
       "reqIds": [
         "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-downloadable-invoice-upload-template-on-the-admin-invoice-management-raw-data-upload-page-that-includes-an-ageing-days-column-in-the-header-so-users-can-include-it-in-their-working-sheet-while-keeping-the-upload-parser-compatible-ageing-days-must-remain-optional-and-ignored-during-import",
+      "title": "Add a downloadable invoice upload template on the Admin \"Invoice Management\" (Raw Data Upload) page that includes an \"Ageing Days\" column in the header so users can include it in their working sheet, while keeping the upload parser compatible (Ageing Days must remain optional and ignored during import).",
+      "reqIds": [
+        "REQ-22"
       ],
       "version": 1
     }
