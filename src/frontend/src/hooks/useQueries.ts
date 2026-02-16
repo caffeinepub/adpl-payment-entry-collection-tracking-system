@@ -102,15 +102,36 @@ export function useAddPayment() {
       paymentAmount,
       paymentType,
       paymentMode,
+      transactionId,
+      chequeBankName,
+      chequeNumber,
+      chequeDate,
+      bankTransferDate,
     }: {
       invoiceNumber: string;
       retailerCode: string;
       paymentAmount: bigint;
       paymentType: PaymentType;
       paymentMode: PaymentMode;
+      transactionId?: string | null;
+      chequeBankName?: string | null;
+      chequeNumber?: string | null;
+      chequeDate?: bigint | null;
+      bankTransferDate?: bigint | null;
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addPayment(invoiceNumber, retailerCode, paymentAmount, paymentType, paymentMode);
+      return actor.addPayment(
+        invoiceNumber,
+        retailerCode,
+        paymentAmount,
+        paymentType,
+        paymentMode,
+        transactionId || null,
+        chequeBankName || null,
+        chequeNumber || null,
+        chequeDate || null,
+        bankTransferDate || null
+      );
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['invoice', variables.invoiceNumber] });
@@ -132,14 +153,34 @@ export function useEditPayment() {
       paymentAmount,
       paymentType,
       paymentMode,
+      transactionId,
+      chequeBankName,
+      chequeNumber,
+      chequeDate,
+      bankTransferDate,
     }: {
       paymentId: bigint;
       paymentAmount: bigint;
       paymentType: PaymentType;
       paymentMode: PaymentMode;
+      transactionId?: string | null;
+      chequeBankName?: string | null;
+      chequeNumber?: string | null;
+      chequeDate?: bigint | null;
+      bankTransferDate?: bigint | null;
     }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.editPayment(paymentId, paymentAmount, paymentType, paymentMode);
+      return actor.editPayment(
+        paymentId,
+        paymentAmount,
+        paymentType,
+        paymentMode,
+        transactionId || null,
+        chequeBankName || null,
+        chequeNumber || null,
+        chequeDate || null,
+        bankTransferDate || null
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });

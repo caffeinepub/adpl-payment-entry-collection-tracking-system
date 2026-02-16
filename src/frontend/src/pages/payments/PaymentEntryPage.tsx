@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import PaymentLinesEditor from '../../components/payments/PaymentLinesEditor';
 import { calculatePaymentTotals, determinePaymentStatus } from '../../utils/payments/paymentStatus';
 import { validatePaymentEntry } from '../../utils/validation/paymentEntryValidation';
+import { htmlDateToBackendTime } from '../../utils/payments/paymentDates';
 import { toast } from 'sonner';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
 import type { PaymentLine } from '../../types/payment';
@@ -54,12 +55,26 @@ export default function PaymentEntryPage() {
           const isExcess = totals.total > invoice.balanceAmount;
           const paymentTypeEnum = isExcess ? PaymentType.excessPayment : PaymentType.invoicePayment;
 
+          // Extract mode-specific reference fields
+          const transactionId = line.mode === 'online' ? line.transactionId?.trim() || null : null;
+          const chequeBankName = line.mode === 'cheque' ? line.bankName?.trim() || null : null;
+          const chequeNumber = line.mode === 'cheque' ? line.chequeNumber?.trim() || null : null;
+          
+          // Extract mode-specific date fields
+          const chequeDate = line.mode === 'cheque' ? htmlDateToBackendTime(line.chequeDate || '') : null;
+          const bankTransferDate = line.mode === 'online' ? htmlDateToBackendTime(line.transferDate || '') : null;
+
           await addPaymentMutation.mutateAsync({
             invoiceNumber: invoice.invoiceNumber,
             retailerCode: invoice.retailerCode,
             paymentAmount: amount,
             paymentType: paymentTypeEnum,
             paymentMode: paymentMode,
+            transactionId,
+            chequeBankName,
+            chequeNumber,
+            chequeDate,
+            bankTransferDate,
           });
         }
       }

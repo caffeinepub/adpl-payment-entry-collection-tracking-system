@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Allow admins to promote/demote user accounts between User and Admin roles, with clear UI/UX messaging and persistent authorization that immediately enables admin-only actions.
+**Goal:** Show the correct mode-specific payment date (RTGS/NEFT/UPI vs Cheque) in on-screen Reports and exported reports, while persisting these dates per payment entry.
 
 **Planned changes:**
-- Add an admin-only backend method to set a target user’s effective role (User/Admin), persisting the change and returning clear errors for unauthorized callers or unknown users.
-- Add an admin-only “User Management” UI section that lists users and their current effective roles, and allows promote/demote with confirmation and post-update UI refresh (cache invalidation).
-- Remove/disable any self-service role selection in profile setup for non-admin users and ensure role labels/navigation gating reflect the effective authorization role (not a user-editable field).
-- Add English guidance and access-denied messaging across relevant screens and endpoints explaining that only admins can grant admin access.
+- Extend the backend `PaymentEntry` model to store optional `chequeDate` and `bankTransferDate`, and wire them through `addPayment` and `editPayment`.
+- Update payment entry and edit-payment UI to send and allow updating the relevant mode-specific date field based on the selected payment mode.
+- Update the Reports ledger table to display a single “Payment Date” column derived by mode: `bankTransferDate` for NEFT/RTGS/UPI, `chequeDate` for Cheque, otherwise fall back to `createdTimestamp`.
+- Update the exported CSV report to include/update a “Payment Date” column with the same mode-based semantics as the on-screen report.
+- Add an upgrade migration so existing stored payments remain intact and the new date fields default to `null`.
 
-**User-visible outcome:** Admins can manage which users are Admins from within the app, promoted users gain access to admin-only features after refresh/navigation, and non-admins see clear English messaging that they need admin permission (with no misleading self-promotion UI).
+**User-visible outcome:** In Reports (and in the exported CSV), users see “Payment Date” as the RTGS/transfer date for NEFT/RTGS/UPI payments and the cheque date for cheque payments; older entries still display a sensible fallback date without errors.

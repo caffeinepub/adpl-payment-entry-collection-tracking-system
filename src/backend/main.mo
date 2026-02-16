@@ -10,9 +10,13 @@ import Map "mo:core/Map";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Int "mo:core/Int";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+// Apply migration on upgrade
+(with migration = Migration.run)
 actor {
   // Role-based Access Control
   let accessControlState = AccessControl.initState();
@@ -36,7 +40,7 @@ actor {
     #excessPayment;
   };
 
-  type PaymentEntry = {
+  public type PaymentEntry = {
     id : Nat;
     invoiceNumber : Text;
     retailerCode : Text;
@@ -45,6 +49,11 @@ actor {
     paymentMode : PaymentMode;
     enteredBy : Principal;
     createdTimestamp : Time.Time;
+    transactionId : ?Text;
+    chequeBankName : ?Text;
+    chequeNumber : ?Text;
+    chequeDate : ?Time.Time;
+    bankTransferDate : ?Time.Time;
   };
 
   public type Invoice = {
@@ -123,7 +132,12 @@ actor {
     retailerCode : Text,
     paymentAmount : Nat,
     paymentType : PaymentType,
-    paymentMode : PaymentMode
+    paymentMode : PaymentMode,
+    transactionId : ?Text,
+    chequeBankName : ?Text,
+    chequeNumber : ?Text,
+    chequeDate : ?Time.Time,
+    bankTransferDate : ?Time.Time,
   ) : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add payments");
@@ -145,6 +159,11 @@ actor {
           paymentMode = paymentMode;
           enteredBy = caller;
           createdTimestamp = Time.now();
+          transactionId = transactionId;
+          chequeBankName = chequeBankName;
+          chequeNumber = chequeNumber;
+          chequeDate = chequeDate;
+          bankTransferDate = bankTransferDate;
         };
 
         nextPaymentId += 1;
@@ -155,7 +174,11 @@ actor {
             if (paymentAmount > invoice.balanceAmount) {
               0;
             } else {
-              invoice.balanceAmount - paymentAmount;
+              if (invoice.balanceAmount >= paymentAmount) {
+                invoice.balanceAmount - paymentAmount;
+              } else {
+                0;
+              };
             };
           } else {
             invoice.balanceAmount;
@@ -192,7 +215,12 @@ actor {
     paymentId : Nat,
     paymentAmount : Nat,
     paymentType : PaymentType,
-    paymentMode : PaymentMode
+    paymentMode : PaymentMode,
+    transactionId : ?Text,
+    chequeBankName : ?Text,
+    chequeNumber : ?Text,
+    chequeDate : ?Time.Time,
+    bankTransferDate : ?Time.Time,
   ) : async () {
     if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can edit payments");
@@ -235,9 +263,15 @@ actor {
 
         // Apply new payment
         let updatedPayment : PaymentEntry = {
-          old with paymentAmount = paymentAmount;
+          old with
+          paymentAmount = paymentAmount;
           paymentType = paymentType;
           paymentMode = paymentMode;
+          transactionId = transactionId;
+          chequeBankName = chequeBankName;
+          chequeNumber = chequeNumber;
+          chequeDate = chequeDate;
+          bankTransferDate = bankTransferDate;
         };
 
         payments := payments.map<PaymentEntry, PaymentEntry>(
@@ -253,7 +287,11 @@ actor {
               if (paymentAmount > invoice.balanceAmount) {
                 0;
               } else {
-                invoice.balanceAmount - paymentAmount;
+                if (invoice.balanceAmount >= paymentAmount) {
+                  invoice.balanceAmount - paymentAmount;
+                } else {
+                  0;
+                };
               };
             } else {
               invoice.balanceAmount;

@@ -2,13 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-an-admin-only-frontend-ui-flow-to-promote-demote-users-between-user-and-admin-roles-so-an-admin-can-manage-roles-without-needing-developer-intervention",
-      "featureTitle": "Add an Admin-only frontend UI flow to promote/demote users between \"User\" and \"Admin\" roles, so an admin can manage roles without needing developer intervention.",
+      "featureId": "feature-persist-mode-specific-payment-dates-in-the-backend-by-extending-the-paymententry-model-to-include-optional-chequedate-and-banktransferdate-fields-and-wire-these-through-addpayment-and-editpayment-so-the-frontend-can-store-the-entered-dates-for-cheque-and-neft-rtgs-upi-payments",
+      "featureTitle": "Persist mode-specific payment dates in the backend by extending the PaymentEntry model to include optional chequeDate and bankTransferDate fields, and wire these through addPayment and editPayment so the frontend can store the entered dates for Cheque and NEFT/RTGS/UPI payments.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/layout/AppLayout.tsx",
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/admin/UserManagementPage.tsx"
+        "frontend/src/pages/payments/EditPaymentEntryPage.tsx",
+        "frontend/src/pages/payments/PaymentEntryPage.tsx",
+        "frontend/src/utils/payments/paymentDates.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,17 +19,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-39"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-align-profile-setup-and-role-display-so-that-user-facing-role-selection-does-not-mislead-users-remove-or-disable-any-self-service-role-selection-that-does-not-actually-grant-admin-permissions-and-ensure-the-displayed-role-reflects-the-effective-authorization-role-used-for-gating-admin-features",
-      "featureTitle": "Align profile setup and role display so that user-facing role selection does not mislead users: remove or disable any self-service role selection that does not actually grant admin permissions, and ensure the displayed role reflects the effective authorization role used for gating admin features.",
+      "featureId": "feature-update-the-on-screen-reports-ledger-table-to-display-a-single-payment-date-value-that-is-conditional-by-payment-mode-show-banktransferdate-for-neft-rtgs-upi-payments-show-chequedate-for-cheque-payments-otherwise-fall-back-to-the-createdtimestamp-date",
+      "featureTitle": "Update the on-screen Reports ledger table to display a single \"Payment Date\" value that is conditional by payment mode: show bankTransferDate for NEFT/RTGS/UPI payments, show chequeDate for Cheque payments, otherwise fall back to the createdTimestamp date.",
       "files": [
-        "frontend/src/components/auth/ProfileSetupModal.tsx",
-        "frontend/src/components/layout/AppLayout.tsx",
-        "frontend/src/hooks/useCurrentUser.ts"
+        "frontend/src/components/reports/RetailerLedgerTable.tsx",
+        "frontend/src/utils/payments/paymentDates.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -40,17 +39,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-40"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-backend-and-frontend-safeguards-and-messaging-to-explain-how-a-user-becomes-an-admin-in-this-system-using-english-user-facing-text",
-      "featureTitle": "Add backend and frontend safeguards and messaging to explain how a \"User\" becomes an \"Admin\" in this system, using English user-facing text.",
+      "featureId": "feature-update-the-exported-csv-report-to-include-a-payment-date-column-that-is-conditional-by-payment-mode-banktransferdate-for-neft-rtgs-upi-chequedate-for-cheque-otherwise-createdtimestamp-keep-other-existing-export-columns-unchanged",
+      "featureTitle": "Update the exported CSV report to include a \"Payment Date\" column that is conditional by payment mode: bankTransferDate for NEFT/RTGS/UPI, chequeDate for Cheque, otherwise createdTimestamp; keep other existing export columns unchanged.",
       "files": [
-        "frontend/src/components/auth/AccessDeniedScreen.tsx",
-        "frontend/src/components/auth/ProfileSetupPrompt.tsx",
-        "frontend/src/pages/LoginPage.tsx"
+        "frontend/src/utils/export/exportReportsToXlsx.ts",
+        "frontend/src/utils/payments/paymentDates.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -61,7 +59,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-41"
+        "REQ-3"
       ],
       "confidence": "high"
     }

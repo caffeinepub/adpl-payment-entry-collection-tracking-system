@@ -10,13 +10,18 @@ export type Option<T> = Some<T> | None;
 export type Time = bigint;
 export interface PaymentEntry {
     id: bigint;
+    chequeDate?: Time;
+    chequeNumber?: string;
     retailerCode: string;
+    bankTransferDate?: Time;
     invoiceNumber: string;
     createdTimestamp: Time;
     paymentMode: PaymentMode;
     paymentType: PaymentType;
+    chequeBankName?: string;
     paymentAmount: bigint;
     enteredBy: Principal;
+    transactionId?: string;
 }
 export interface Invoice {
     status: InvoiceStatus;
@@ -52,10 +57,10 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    addPayment(invoiceNumber: string, retailerCode: string, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode): Promise<string>;
+    addPayment(invoiceNumber: string, retailerCode: string, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode, transactionId: string | null, chequeBankName: string | null, chequeNumber: string | null, chequeDate: Time | null, bankTransferDate: Time | null): Promise<string>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     clearAllData(): Promise<void>;
-    editPayment(paymentId: bigint, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode): Promise<void>;
+    editPayment(paymentId: bigint, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode, transactionId: string | null, chequeBankName: string | null, chequeNumber: string | null, chequeDate: Time | null, bankTransferDate: Time | null): Promise<void>;
     getAllInvoices(): Promise<Array<Invoice>>;
     getAllPayments(): Promise<Array<PaymentEntry>>;
     getCallerUserProfile(): Promise<UserProfile | null>;

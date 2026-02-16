@@ -1,95 +1,81 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Admin-controlled user role promotion (User ↔ Admin) UI",
+  "title": "Mode-specific payment dates in reports (UI + CSV export)",
   "requirements": [
     {
-      "id": "REQ-39",
-      "summary": "Add an admin-only User Management UI to view users and promote/demote roles with confirmation and cache refresh.",
+      "id": "REQ-1",
+      "summary": "Send mode-specific payment dates (chequeDate / bankTransferDate) from Payment Entry and Edit Payment screens via existing add/edit payment mutations.",
       "acceptanceCriteria": [
-        "An admin can access a \"User Management\" (or similarly named) section from within the authenticated app UI.",
-        "The UI lists user accounts/profiles that exist in the system and shows each user’s current effective role (Admin/User).",
-        "For each listed user, an admin can promote to Admin and (if implemented) demote to User, with a confirmation step for role changes.",
-        "After a successful role update, the UI shows the updated role without requiring a hard refresh (React Query cache is invalidated appropriately).",
-        "A non-admin user cannot see or access this role management UI (attempts show an English access denied experience)."
+        "Backend PaymentEntry includes optional fields for chequeDate and bankTransferDate (both nullable/optional).",
+        "backend/main.mo addPayment accepts and stores chequeDate and bankTransferDate when applicable.",
+        "backend/main.mo editPayment accepts and updates chequeDate and bankTransferDate when applicable.",
+        "Payment entry UI (PaymentEntryPage) sends chequeDate for cheque lines and transferDate for online lines to the backend.",
+        "Edit payment UI (EditPaymentEntryPage) allows admins to view/update the mode-specific date field for the selected mode and sends it to the backend.",
+        "Existing payment entries that predate this change continue to work with missing (null) chequeDate/bankTransferDate values."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/admin/UserManagementPage.tsx",
+          "path": "frontend/src/utils/payments/paymentDates.ts",
           "operation": "create",
-          "description": "Create an admin-only \"User Management\" page that uses the selected \"authorization\" component concepts (effective role gating via backend-provided role) to render a user list with current effective roles and actions to promote/demote. Include an English confirmation step before applying role changes and show success/error toasts. Verify the component's usage instructions before implementing."
+          "description": "Add shared frontend helpers to (1) derive the effective Payment Date from a PaymentEntry (bankTransferDate/chequeDate/createdTimestamp fallback) and (2) convert an HTML date input value (YYYY-MM-DD) into backend Time (nanoseconds) for chequeDate/bankTransferDate."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add React Query hooks for (1) fetching the list of existing users/profiles for User Management and (2) performing role updates (promote/demote or explicit set). Ensure onSuccess invalidates the user list query and, when applicable, invalidates current-user role/profile queries to reflect changes without a hard refresh. Verify the component's usage instructions before implementing."
+          "description": "Extend useAddPayment and useEditPayment mutations to accept chequeDate and bankTransferDate variables and pass them into actor.addPayment / actor.editPayment calls (as Time | null) so the frontend can persist the entered mode-specific dates."
         },
         {
-          "path": "frontend/src/backend.d.ts",
+          "path": "frontend/src/pages/payments/PaymentEntryPage.tsx",
           "operation": "modify",
-          "description": "Extend the generated backend interface types to include the role-management UI capabilities required by the new User Management screen (e.g., a function to list existing users/profiles and a function to set a user's role explicitly) so the frontend can call them in a type-safe way once backend support is present. Verify the component's usage instructions before implementing."
+          "description": "When submitting each payment line, convert and send the mode-specific date: send chequeDate for cheque lines, send bankTransferDate for online (NEFT/RTGS/UPI) lines, and send null for other modes; keep existing validation behavior and ensure older flows still work when dates are absent."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/pages/payments/EditPaymentEntryPage.tsx",
           "operation": "modify",
-          "description": "Wire the new User Management page into routing under an admin-only route (e.g., within the existing admin guard pattern used for /admin/dashboard and /edit-payment). Non-admin access must render the existing AccessDeniedScreen in English. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
-          "operation": "modify",
-          "description": "Add a \"User Management\" navigation item that is only visible when the effective role from useCurrentUser is admin. Keep navigation visibility based on effective authorization role (not any user-editable profile field). Verify the component's usage instructions before implementing."
+          "description": "Add a conditional date input for the selected paymentMode (Cheque Date for cheque, Transfer Date for bank transfer), prefill it when available from the payment record, validate when required, and submit it via useEditPayment as chequeDate/bankTransferDate (Time | null)."
         }
       ]
     },
     {
-      "id": "REQ-40",
-      "summary": "Remove/disable self-service role selection and ensure role display/gating uses effective authorization role.",
+      "id": "REQ-2",
+      "summary": "Display a conditional Payment Date in the on-screen Reports ledger table based on payment mode.",
       "acceptanceCriteria": [
-        "If the current profile setup UI allows choosing \"Admin\", it is replaced with an English explanation that roles are assigned by an administrator, or the role field is removed/disabled for non-admin users.",
-        "The header role label and admin-only navigation visibility are based on the effective role used by routing/gating (not a user-editable profile field).",
-        "After an admin changes a user’s role, that user’s next navigation/refresh correctly shows admin UI (e.g., Admin Dashboard link appears) when their effective role is admin."
+        "RetailerLedgerTable shows a Payment Date column/value derived as: bankTransferDate (if mode=bankTransfer and present) else chequeDate (if mode=cheque and present) else createdTimestamp.",
+        "When the relevant mode-specific date is not present (older records), the UI falls back to createdTimestamp without errors.",
+        "Displayed date formatting remains consistent with existing report date formatting (en-IN locale)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
+          "path": "frontend/src/components/reports/RetailerLedgerTable.tsx",
           "operation": "modify",
-          "description": "Remove or disable the role selector so users cannot self-select \"Admin\". Persist a default role consistent with effective authorization (e.g., save profile with role as \"user\" or omit role if supported), and add English helper text explaining that admin access is assigned by an administrator. Use the selected \"authorization\" component guidance to keep role meaning aligned with backend effective role. Verify the component's usage instructions before implementing."
+          "description": "Update the table to show a single \"Payment Date\" column using the shared helper to derive the effective date per row (bankTransferDate/chequeDate/createdTimestamp fallback), keeping existing en-IN date formatting and ensuring null/undefined dates do not throw."
         },
         {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
+          "path": "frontend/src/utils/payments/paymentDates.ts",
           "operation": "modify",
-          "description": "Ensure any displayed role label continues to reflect the effective role from useCurrentUser (caller role from backend), not the role stored in the editable profile payload. Confirm admin-only nav visibility uses effective role. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useCurrentUser.ts",
-          "operation": "modify",
-          "description": "Align current user helpers so the effective role is the single source of truth for admin gating and display (e.g., consistently derive isAdmin from the backend-provided role query result). Ensure role updates can be reflected by invalidating currentUserRole/currentUserProfile queries. Verify the component's usage instructions before implementing."
+          "description": "Ensure the helper that derives the effective Payment Date supports missing optional fields (older records) and returns createdTimestamp as a safe fallback."
         }
       ]
     },
     {
-      "id": "REQ-41",
-      "summary": "Add English guidance and access-denied messaging explaining how users become admins and what happens when unauthorized.",
+      "id": "REQ-3",
+      "summary": "Update the exported CSV report to include a conditional \"Payment Date\" column matching on-screen semantics.",
       "acceptanceCriteria": [
-        "Login/Profile-related screens show English guidance explaining that only an admin can grant admin access (no ambiguous wording suggesting users can self-promote).",
-        "When a non-admin attempts an admin-only action, the user sees an English error or access denied message that indicates they need admin permission.",
-        "Backend error messages for role-management endpoints are clear and consistent (e.g., \"Unauthorized: Only admins can change roles\")."
+        "exportReportsToXlsx adds/updates a CSV column named \"Payment Date\" populated as: bankTransferDate (bank transfer) else chequeDate (cheque) else createdTimestamp.",
+        "Export succeeds without runtime errors when mode-specific dates are null/missing.",
+        "CSV values for Payment Date match the on-screen semantics for the same payment rows."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LoginPage.tsx",
+          "path": "frontend/src/utils/export/exportReportsToXlsx.ts",
           "operation": "modify",
-          "description": "Strengthen the English guidance text to clearly state that admin access is granted by an existing administrator and cannot be self-assigned. Keep wording unambiguous and consistent with the selected \"authorization\" component’s role model. Verify the component's usage instructions before implementing."
+          "description": "Update the CSV header to include a \"Payment Date\" column (replacing the current createdTimestamp-based date column value) and populate it using the shared effective-date helper while keeping all other existing export columns and ordering unchanged; handle missing optional date fields safely."
         },
         {
-          "path": "frontend/src/components/auth/ProfileSetupPrompt.tsx",
+          "path": "frontend/src/utils/payments/paymentDates.ts",
           "operation": "modify",
-          "description": "Add concise English guidance near profile setup prompting that role is assigned by an administrator (avoid implying self-promotion). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/auth/AccessDeniedScreen.tsx",
-          "operation": "modify",
-          "description": "Update English access denied messaging to explicitly indicate that the action/page requires Admin permissions and that a user must be granted Admin access by an administrator. Ensure this screen is used for non-admin access to admin-only routes. Verify the component's usage instructions before implementing."
+          "description": "Expose a reusable function to compute the effective Payment Date timestamp for export usage so the CSV semantics match the on-screen ledger semantics."
         }
       ]
     }

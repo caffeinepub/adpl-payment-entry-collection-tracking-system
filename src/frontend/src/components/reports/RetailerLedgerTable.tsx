@@ -1,6 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { PaymentEntry, PaymentMode, PaymentType } from '../../backend';
+import { getEffectivePaymentDate } from '../../utils/payments/paymentDates';
 
 interface RetailerLedgerTableProps {
   payments: PaymentEntry[];
@@ -57,29 +58,48 @@ export default function RetailerLedgerTable({ payments }: RetailerLedgerTablePro
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
+                    <TableHead>Payment Date</TableHead>
                     <TableHead>Invoice</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Mode</TableHead>
+                    <TableHead>Transaction ID</TableHead>
+                    <TableHead>Bank Name</TableHead>
+                    <TableHead>Cheque Number</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {retailerPayments.map((payment) => (
-                    <TableRow key={Number(payment.id)}>
-                      <TableCell>{formatDate(payment.createdTimestamp)}</TableCell>
-                      <TableCell>{payment.invoiceNumber}</TableCell>
-                      <TableCell>
-                        <Badge variant={payment.paymentType === PaymentType.invoicePayment ? 'default' : 'secondary'}>
-                          {getPaymentTypeLabel(payment.paymentType)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{getPaymentModeLabel(payment.paymentMode)}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(payment.paymentAmount)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {retailerPayments.map((payment) => {
+                    const effectiveDate = getEffectivePaymentDate(payment);
+                    const transactionId = payment.paymentMode === PaymentMode.bankTransfer && payment.transactionId 
+                      ? payment.transactionId 
+                      : '';
+                    const bankName = payment.paymentMode === PaymentMode.cheque && payment.chequeBankName 
+                      ? payment.chequeBankName 
+                      : '';
+                    const chequeNumber = payment.paymentMode === PaymentMode.cheque && payment.chequeNumber 
+                      ? payment.chequeNumber 
+                      : '';
+
+                    return (
+                      <TableRow key={Number(payment.id)}>
+                        <TableCell>{formatDate(effectiveDate)}</TableCell>
+                        <TableCell>{payment.invoiceNumber}</TableCell>
+                        <TableCell>
+                          <Badge variant={payment.paymentType === PaymentType.invoicePayment ? 'default' : 'secondary'}>
+                            {getPaymentTypeLabel(payment.paymentType)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{getPaymentModeLabel(payment.paymentMode)}</TableCell>
+                        <TableCell className="text-muted-foreground">{transactionId || '—'}</TableCell>
+                        <TableCell className="text-muted-foreground">{bankName || '—'}</TableCell>
+                        <TableCell className="text-muted-foreground">{chequeNumber || '—'}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(payment.paymentAmount)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

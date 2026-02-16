@@ -1,4 +1,5 @@
 import { PaymentEntry, PaymentMode, PaymentType } from '../../backend';
+import { getEffectivePaymentDate } from '../payments/paymentDates';
 
 export function exportReportsToXlsx(
   reportsData: {
@@ -40,16 +41,30 @@ export function exportReportsToXlsx(
   csvRows.push(`Pending Balance,${formatCurrency(reportsData.pendingBalance)}`);
   csvRows.push('');
   csvRows.push('Payment Details');
-  csvRows.push('Date & Time,Retailer Code,Invoice Number,Type,Mode,Amount,Entered By');
+  csvRows.push('Payment Date,Retailer Code,Invoice Number,Type,Mode,Amount,Transaction ID,Bank Name,Cheque Number,Entered By');
 
   reportsData.payments.forEach((payment) => {
+    const effectiveDate = getEffectivePaymentDate(payment);
+    const transactionId = payment.paymentMode === PaymentMode.bankTransfer && payment.transactionId 
+      ? payment.transactionId 
+      : '';
+    const bankName = payment.paymentMode === PaymentMode.cheque && payment.chequeBankName 
+      ? payment.chequeBankName 
+      : '';
+    const chequeNumber = payment.paymentMode === PaymentMode.cheque && payment.chequeNumber 
+      ? payment.chequeNumber 
+      : '';
+
     const row = [
-      formatDate(payment.createdTimestamp),
+      formatDate(effectiveDate),
       payment.retailerCode,
       payment.invoiceNumber,
       getPaymentTypeLabel(payment.paymentType),
       getPaymentModeLabel(payment.paymentMode),
       formatCurrency(payment.paymentAmount).toString(),
+      transactionId,
+      bankName,
+      chequeNumber,
       payment.enteredBy.toString(),
     ];
     csvRows.push(row.map(cell => `"${cell}"`).join(','));

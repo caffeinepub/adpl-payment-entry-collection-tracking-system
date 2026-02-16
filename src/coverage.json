@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T04:29:03.349Z",
+  "generatedAt": "2026-02-16T14:00:48.589Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,77 +11,74 @@
     "implemented": 3,
     "items": [
       {
-        "id": "REQ-38",
-        "summary": "Add a backend admin-only capability to change another user’s effective authorization role from \"user\" to \"admin\" (and optionally back to \"user\"), so that a user account can be promoted to admin and immediately gain access to admin-only operations (e.g., invoice upload and clear data).",
+        "id": "REQ-1",
+        "summary": "Persist mode-specific payment dates in the backend by extending the PaymentEntry model to include optional chequeDate and bankTransferDate fields, and wire these through addPayment and editPayment so the frontend can store the entered dates for Cheque and NEFT/RTGS/UPI payments.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/utils/payments/paymentDates.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/payments/PaymentEntryPage.tsx",
+          "frontend/src/pages/payments/EditPaymentEntryPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/utils/payments/paymentDates.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/payments/PaymentEntryPage.tsx",
+          "frontend/src/pages/payments/EditPaymentEntryPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Update the on-screen Reports ledger table to display a single \"Payment Date\" value that is conditional by payment mode: show bankTransferDate for NEFT/RTGS/UPI payments, show chequeDate for Cheque payments, otherwise fall back to the createdTimestamp date.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/reports/RetailerLedgerTable.tsx",
+          "frontend/src/utils/payments/paymentDates.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/reports/RetailerLedgerTable.tsx",
+          "frontend/src/utils/payments/paymentDates.ts"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update the exported CSV report to include a \"Payment Date\" column that is conditional by payment mode: bankTransferDate for NEFT/RTGS/UPI, chequeDate for Cheque, otherwise createdTimestamp; keep other existing export columns unchanged.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/utils/export/exportReportsToXlsx.ts",
+          "frontend/src/utils/payments/paymentDates.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/utils/export/exportReportsToXlsx.ts",
+          "frontend/src/utils/payments/paymentDates.ts"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Add a conditional migration for existing stable data so previously stored PaymentEntry records are upgraded with null chequeDate and null bankTransferDate fields, without changing any existing payment amounts or invoice balances.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
-      },
-      {
-        "id": "REQ-39",
-        "summary": "Add an Admin-only frontend UI flow to promote/demote users between \"User\" and \"Admin\" roles, so an admin can manage roles without needing developer intervention.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/admin/UserManagementPage.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/backend.d.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/components/layout/AppLayout.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/admin/UserManagementPage.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/components/layout/AppLayout.tsx"
-        ]
-      },
-      {
-        "id": "REQ-40",
-        "summary": "Align profile setup and role display so that user-facing role selection does not mislead users: remove or disable any self-service role selection that does not actually grant admin permissions, and ensure the displayed role reflects the effective authorization role used for gating admin features.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/components/layout/AppLayout.tsx",
-          "frontend/src/hooks/useCurrentUser.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/components/layout/AppLayout.tsx",
-          "frontend/src/hooks/useCurrentUser.ts"
-        ]
-      },
-      {
-        "id": "REQ-41",
-        "summary": "Add backend and frontend safeguards and messaging to explain how a \"User\" becomes an \"Admin\" in this system, using English user-facing text.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/LoginPage.tsx",
-          "frontend/src/components/auth/ProfileSetupPrompt.tsx",
-          "frontend/src/components/auth/AccessDeniedScreen.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/LoginPage.tsx",
-          "frontend/src/components/auth/ProfileSetupPrompt.tsx",
-          "frontend/src/components/auth/AccessDeniedScreen.tsx"
-        ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/components/auth/AccessDeniedScreen.tsx",
-    "frontend/src/components/auth/ProfileSetupModal.tsx",
-    "frontend/src/components/auth/ProfileSetupPrompt.tsx",
-    "frontend/src/components/layout/AppLayout.tsx",
-    "frontend/src/hooks/useCurrentUser.ts",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/reports/RetailerLedgerTable.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/LoginPage.tsx",
-    "frontend/src/pages/admin/UserManagementPage.tsx",
+    "frontend/src/pages/payments/EditPaymentEntryPage.tsx",
+    "frontend/src/pages/payments/PaymentEntryPage.tsx",
+    "frontend/src/utils/export/exportReportsToXlsx.ts",
+    "frontend/src/utils/payments/paymentDates.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

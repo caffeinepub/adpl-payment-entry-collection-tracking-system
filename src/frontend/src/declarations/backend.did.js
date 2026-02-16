@@ -17,6 +17,7 @@ export const PaymentMode = IDL.Variant({
   'bankTransfer' : IDL.Null,
   'cheque' : IDL.Null,
 });
+export const Time = IDL.Int;
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -37,30 +38,55 @@ export const Invoice = IDL.Record({
   'invoiceDate' : IDL.Text,
   'invoiceNumber' : IDL.Text,
 });
-export const Time = IDL.Int;
 export const PaymentEntry = IDL.Record({
   'id' : IDL.Nat,
+  'chequeDate' : IDL.Opt(Time),
+  'chequeNumber' : IDL.Opt(IDL.Text),
   'retailerCode' : IDL.Text,
+  'bankTransferDate' : IDL.Opt(Time),
   'invoiceNumber' : IDL.Text,
   'createdTimestamp' : Time,
   'paymentMode' : PaymentMode,
   'paymentType' : PaymentType,
+  'chequeBankName' : IDL.Opt(IDL.Text),
   'paymentAmount' : IDL.Nat,
   'enteredBy' : IDL.Principal,
+  'transactionId' : IDL.Opt(IDL.Text),
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text, 'role' : IDL.Text });
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addPayment' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Nat, PaymentType, PaymentMode],
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        PaymentType,
+        PaymentMode,
+        IDL.Opt(IDL.Text),
+        IDL.Opt(IDL.Text),
+        IDL.Opt(IDL.Text),
+        IDL.Opt(Time),
+        IDL.Opt(Time),
+      ],
       [IDL.Text],
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'clearAllData' : IDL.Func([], [], []),
   'editPayment' : IDL.Func(
-      [IDL.Nat, IDL.Nat, PaymentType, PaymentMode],
+      [
+        IDL.Nat,
+        IDL.Nat,
+        PaymentType,
+        PaymentMode,
+        IDL.Opt(IDL.Text),
+        IDL.Opt(IDL.Text),
+        IDL.Opt(IDL.Text),
+        IDL.Opt(Time),
+        IDL.Opt(Time),
+      ],
       [],
       [],
     ),
@@ -114,6 +140,7 @@ export const idlFactory = ({ IDL }) => {
     'bankTransfer' : IDL.Null,
     'cheque' : IDL.Null,
   });
+  const Time = IDL.Int;
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -134,30 +161,55 @@ export const idlFactory = ({ IDL }) => {
     'invoiceDate' : IDL.Text,
     'invoiceNumber' : IDL.Text,
   });
-  const Time = IDL.Int;
   const PaymentEntry = IDL.Record({
     'id' : IDL.Nat,
+    'chequeDate' : IDL.Opt(Time),
+    'chequeNumber' : IDL.Opt(IDL.Text),
     'retailerCode' : IDL.Text,
+    'bankTransferDate' : IDL.Opt(Time),
     'invoiceNumber' : IDL.Text,
     'createdTimestamp' : Time,
     'paymentMode' : PaymentMode,
     'paymentType' : PaymentType,
+    'chequeBankName' : IDL.Opt(IDL.Text),
     'paymentAmount' : IDL.Nat,
     'enteredBy' : IDL.Principal,
+    'transactionId' : IDL.Opt(IDL.Text),
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text, 'role' : IDL.Text });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addPayment' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Nat, PaymentType, PaymentMode],
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          PaymentType,
+          PaymentMode,
+          IDL.Opt(IDL.Text),
+          IDL.Opt(IDL.Text),
+          IDL.Opt(IDL.Text),
+          IDL.Opt(Time),
+          IDL.Opt(Time),
+        ],
         [IDL.Text],
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'clearAllData' : IDL.Func([], [], []),
     'editPayment' : IDL.Func(
-        [IDL.Nat, IDL.Nat, PaymentType, PaymentMode],
+        [
+          IDL.Nat,
+          IDL.Nat,
+          PaymentType,
+          PaymentMode,
+          IDL.Opt(IDL.Text),
+          IDL.Opt(IDL.Text),
+          IDL.Opt(IDL.Text),
+          IDL.Opt(Time),
+          IDL.Opt(Time),
+        ],
         [],
         [],
       ),

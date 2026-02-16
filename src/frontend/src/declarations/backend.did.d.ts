@@ -25,13 +25,18 @@ export type InvoiceStatus = { 'paid' : null } |
   { 'partiallyPaid' : null };
 export interface PaymentEntry {
   'id' : bigint,
+  'chequeDate' : [] | [Time],
+  'chequeNumber' : [] | [string],
   'retailerCode' : string,
+  'bankTransferDate' : [] | [Time],
   'invoiceNumber' : string,
   'createdTimestamp' : Time,
   'paymentMode' : PaymentMode,
   'paymentType' : PaymentType,
+  'chequeBankName' : [] | [string],
   'paymentAmount' : bigint,
   'enteredBy' : Principal,
+  'transactionId' : [] | [string],
 }
 export type PaymentMode = { 'cash' : null } |
   { 'bankTransfer' : null } |
@@ -46,13 +51,34 @@ export type UserRole = { 'admin' : null } |
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addPayment' : ActorMethod<
-    [string, string, bigint, PaymentType, PaymentMode],
+    [
+      string,
+      string,
+      bigint,
+      PaymentType,
+      PaymentMode,
+      [] | [string],
+      [] | [string],
+      [] | [string],
+      [] | [Time],
+      [] | [Time],
+    ],
     string
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'clearAllData' : ActorMethod<[], undefined>,
   'editPayment' : ActorMethod<
-    [bigint, bigint, PaymentType, PaymentMode],
+    [
+      bigint,
+      bigint,
+      PaymentType,
+      PaymentMode,
+      [] | [string],
+      [] | [string],
+      [] | [string],
+      [] | [Time],
+      [] | [Time],
+    ],
     undefined
   >,
   'getAllInvoices' : ActorMethod<[], Array<Invoice>>,

@@ -1,95 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Add admin-controlled role promotion (User -> Admin)",
+  "title": "Show mode-specific dates (RTGS date vs Cheque date) in Reports",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-38",
-      "text": "Add a backend admin-only capability to change another user’s effective authorization role from \"user\" to \"admin\" (and optionally back to \"user\"), so that a user account can be promoted to admin and immediately gain access to admin-only operations (e.g., invoice upload and clear data).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "How to account role user to admin"
-        ]
-      },
-      "acceptanceCriteria": [
-        "There is a new admin-only backend method that promotes a specified user to admin (and a corresponding method to demote back to user, or one method that sets role explicitly).",
-        "The method rejects anonymous callers and rejects non-admin callers with a clear \"Unauthorized\" error.",
-        "After promotion, the promoted user can successfully call existing admin-only backend methods (e.g., uploadInvoices, clearAllData) without changing any frontend code.",
-        "Role changes persist across page refresh and subsequent calls.",
-        "If the target user does not exist / has never been seen, the method returns a clear error instead of silently succeeding (or explicitly documents/implements the desired behavior)."
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "text": "Add an Admin-only frontend UI flow to promote/demote users between \"User\" and \"Admin\" roles, so an admin can manage roles without needing developer intervention.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "How to account role user to admin"
-        ]
-      },
-      "acceptanceCriteria": [
-        "An admin can access a \"User Management\" (or similarly named) section from within the authenticated app UI.",
-        "The UI lists user accounts/profiles that exist in the system and shows each user’s current effective role (Admin/User).",
-        "For each listed user, an admin can promote to Admin and (if implemented) demote to User, with a confirmation step for role changes.",
-        "After a successful role update, the UI shows the updated role without requiring a hard refresh (React Query cache is invalidated appropriately).",
-        "A non-admin user cannot see or access this role management UI (attempts show an English access denied experience)."
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "text": "Align profile setup and role display so that user-facing role selection does not mislead users: remove or disable any self-service role selection that does not actually grant admin permissions, and ensure the displayed role reflects the effective authorization role used for gating admin features.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "How to account role user to admin"
-        ]
-      },
-      "acceptanceCriteria": [
-        "If the current profile setup UI allows choosing \"Admin\", it is replaced with an English explanation that roles are assigned by an administrator, or the role field is removed/disabled for non-admin users.",
-        "The header role label and admin-only navigation visibility are based on the effective role used by routing/gating (not a user-editable profile field).",
-        "After an admin changes a user’s role, that user’s next navigation/refresh correctly shows admin UI (e.g., Admin Dashboard link appears) when their effective role is admin."
-      ]
-    },
-    {
-      "id": "REQ-41",
-      "text": "Add backend and frontend safeguards and messaging to explain how a \"User\" becomes an \"Admin\" in this system, using English user-facing text.",
+      "id": "REQ-1",
+      "text": "Persist mode-specific payment dates in the backend by extending the PaymentEntry model to include optional chequeDate and bankTransferDate fields, and wire these through addPayment and editPayment so the frontend can store the entered dates for Cheque and NEFT/RTGS/UPI payments.",
       "target": "both",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "How to account role user to admin"
+          "In Report column if it's RTGS payment I need RTGS Date and if it's Cheque payment I need cheque date..is this possible"
         ]
       },
       "acceptanceCriteria": [
-        "Login/Profile-related screens show English guidance explaining that only an admin can grant admin access (no ambiguous wording suggesting users can self-promote).",
-        "When a non-admin attempts an admin-only action, the user sees an English error or access denied message that indicates they need admin permission.",
-        "Backend error messages for role-management endpoints are clear and consistent (e.g., \"Unauthorized: Only admins can change roles\")."
+        "Backend PaymentEntry includes optional fields for chequeDate and bankTransferDate (both nullable/optional).",
+        "backend/main.mo addPayment accepts and stores chequeDate and bankTransferDate when applicable.",
+        "backend/main.mo editPayment accepts and updates chequeDate and bankTransferDate when applicable.",
+        "Payment entry UI (PaymentEntryPage) sends chequeDate for cheque lines and transferDate for online lines to the backend.",
+        "Edit payment UI (EditPaymentEntryPage) allows admins to view/update the mode-specific date field for the selected mode and sends it to the backend.",
+        "Existing payment entries that predate this change continue to work with missing (null) chequeDate/bankTransferDate values."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the on-screen Reports ledger table to display a single \"Payment Date\" value that is conditional by payment mode: show bankTransferDate for NEFT/RTGS/UPI payments, show chequeDate for Cheque payments, otherwise fall back to the createdTimestamp date.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "In Report column if it's RTGS payment I need RTGS Date and if it's Cheque payment I need cheque date..is this possible"
+        ]
+      },
+      "acceptanceCriteria": [
+        "RetailerLedgerTable shows a Payment Date column/value derived as: bankTransferDate (if mode=bankTransfer and present) else chequeDate (if mode=cheque and present) else createdTimestamp.",
+        "When the relevant mode-specific date is not present (older records), the UI falls back to createdTimestamp without errors.",
+        "Displayed date formatting remains consistent with existing report date formatting (en-IN locale)."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update the exported CSV report to include a \"Payment Date\" column that is conditional by payment mode: bankTransferDate for NEFT/RTGS/UPI, chequeDate for Cheque, otherwise createdTimestamp; keep other existing export columns unchanged.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "In Report column if it's RTGS payment I need RTGS Date and if it's Cheque payment I need cheque date..is this possible"
+        ]
+      },
+      "acceptanceCriteria": [
+        "exportReportsToXlsx adds/updates a CSV column named \"Payment Date\" populated as: bankTransferDate (bank transfer) else chequeDate (cheque) else createdTimestamp.",
+        "Export succeeds without runtime errors when mode-specific dates are null/missing.",
+        "CSV values for Payment Date match the on-screen semantics for the same payment rows."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a conditional migration for existing stable data so previously stored PaymentEntry records are upgraded with null chequeDate and null bankTransferDate fields, without changing any existing payment amounts or invoice balances.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "In Report column if it's RTGS payment I need RTGS Date and if it's Cheque payment I need cheque date..is this possible"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On canister upgrade, existing stored payments are preserved and new date fields default to null.",
+        "After upgrade, getAllPayments/getReportsData continue to return all existing payments successfully.",
+        "No invoice balances or statuses are modified by the migration."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor; place all new logic in backend/main.mo.",
-    "Create backend/migration.mo only if state/schema changes require an upgrade path, following the project’s conditional migration policy.",
-    "Do not edit any frontend files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui; compose them instead.",
-    "All user-facing text must be in English."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
+    "Do not edit files under frontend/src/components/ui or any frontend immutablePaths listed in SYSTEM_CONTEXT; compose existing UI components instead."
   ],
   "nonGoals": [
-    "Implementing third-party authentication providers (only existing app auth mechanisms are in scope).",
-    "Adding external databases or off-chain storage.",
-    "Building real-time role sync via websockets/push notifications."
+    "Adding new payment modes or changing the meaning of PaymentType (invoice vs excess).",
+    "Changing report filtering logic (date range, salesman, type, mode) beyond using the new mode-specific date for display/export.",
+    "Implementing third-party integrations or external databases."
   ],
   "imageRequirements": {
     "required": [],

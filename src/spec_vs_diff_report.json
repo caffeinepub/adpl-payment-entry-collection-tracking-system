@@ -1,75 +1,62 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T04:29:03.345Z",
-  "summary": "Frontend adds an admin-only User Management page/route, role-based navigation, and English guidance that roles are assigned by an administrator. However, the diff summary does not show the required backend role-promotion API implementation (and persistence/target-existence checks) needed for role changes to actually take effect.",
+  "generatedAt": "2026-02-16T14:00:48.586Z",
+  "summary": "Most requested mode-specific date functionality is implemented on the frontend (effective \"Payment Date\" derivation in the ledger table and CSV export) and a backend migration module was added. However, due to truncation of backend/main.mo, it is not fully verifiable from the diff summary that addPayment/editPayment are actually updated to accept/store/update the new chequeDate and bankTransferDate fields end-to-end. The diff summary also indicates several unrelated admin/user-management and UI enhancements that were not requested.",
   "missing_requirements": [
     {
-      "id": "REQ-38",
-      "requirement": "Backend admin-only method to promote/demote (or set) another user’s effective authorization role (user/admin), rejecting anonymous and non-admin callers with clear Unauthorized errors; changes must persist; error if target user does not exist/has never been seen.",
-      "reason": "Frontend calls/assumes backend methods like getCallerUserRole and role-assignment + listing users, but the backend/main.mo diff excerpt does not show any new shared method that changes roles or lists users, nor any persistence/target-existence validation logic for role changes.",
+      "id": "REQ-1",
+      "requirement": "backend/main.mo addPayment accepts and stores chequeDate and bankTransferDate when applicable; backend/main.mo editPayment accepts and updates chequeDate and bankTransferDate when applicable.",
+      "reason": "PaymentEntry was extended with chequeDate and bankTransferDate, and the frontend mutations/pages pass these fields, but the backend implementation of addPayment/editPayment is truncated in the diff summary (addPayment signature/body not fully shown; editPayment not shown). Therefore it cannot be confirmed that the backend methods accept/store/update the new fields.",
       "evidence": [
-        "backend/main.mo",
-        "frontend/src/hooks/useCurrentUser.ts (calls actor.getCallerUserRole())",
-        "frontend/src/pages/admin/UserManagementPage.tsx (uses useGetAllUserProfiles/useAssignUserRole)"
+        "backend/main.mo (truncated at addPayment args: \"cheq...\"; editPayment not shown)",
+        "frontend/src/hooks/useQueries.ts (passes chequeDate and bankTransferDate to actor.addPayment; edit mutation not visible in excerpt)",
+        "frontend/src/pages/payments/EditPaymentEntryPage.tsx (sends chequeDate/bankTransferDate on edit)",
+        "frontend/src/pages/payments/PaymentEntryPage.tsx (sends chequeDate/bankTransferDate on add)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Invoice table enhancement adding a sortable “Ageing Days” column with visual indicators.",
-      "reason": "Not requested by REQ-38–REQ-41; unrelated to admin-controlled role promotion and role UI alignment.",
+      "description": "Admin-only user management route and related role/auth UI changes (e.g., new /admin/users route, user management link, profile role guidance changes).",
+      "reason": "Not requested by any REQ; the BuildRequest is specifically about mode-specific payment dates in reports and persistence/migration, and lists non-goals unrelated to user management.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/tables/InvoicesTable.tsx)"
+        "frontend-file-summaries.txt (mentions \"new admin-only /admin/users route\", user management, role detection changes, access denied messaging, profile setup modal changes)",
+        "frontend/src/App.tsx (described as adding /admin/users route in frontend-file-summaries.txt)",
+        "frontend/src/components/layout/AppLayout.tsx (described as adding role-based navigation incl. User Management link)",
+        "frontend/src/hooks/useCurrentUser.ts (described role detection changes)",
+        "frontend/src/components/auth/ProfileSetupModal.tsx (described role selection removal/guidance)"
       ]
     },
     {
-      "description": "Raw Data Upload page additions such as CSV/TSV upload support, “Download Template” button, search/filter controls, pagination, and a “Danger Zone” section.",
-      "reason": "Not requested in this build (scope is role management + messaging); these are broader feature enhancements.",
+      "description": "Invoices table enhancement: new sortable \"Ageing Days\" column with sort toggles and visual indicators.",
+      "reason": "Not requested by any REQ; unrelated to mode-specific payment date persistence/display/export/migration.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/admin/RawDataUploadPage.tsx)"
+        "frontend-file-summaries.txt (mentions \"InvoicesTable\" new sortable \"Ageing Days\" column)",
+        "frontend/src/components/tables/InvoicesTable.tsx (as referenced in frontend-file-summaries.txt)"
       ]
     },
     {
-      "description": "Expanded payment workflow features (multi-mode payment lines editor, real-time totals/status calculation, excess warning, validation) and admin-only payment editing page behavior changes.",
-      "reason": "Not requested by REQ-38–REQ-41; unrelated to user role promotion/demotion flow.",
+      "description": "Admin dashboard and raw data upload page feature expansions (summary cards, template download, pagination/search, danger zone, etc.).",
+      "reason": "Not requested; the BuildRequest does not ask for dashboard/upload UX changes beyond the date-field work.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/payments/PaymentLinesEditor.tsx)",
-        "frontend-file-summaries.txt (frontend/src/pages/payments/PaymentEntryPage.tsx)",
-        "frontend-file-summaries.txt (frontend/src/pages/payments/EditPaymentEntryPage.tsx)",
-        "frontend-file-summaries.txt (frontend/src/pages/payments/PaymentHistoryPage.tsx)"
-      ]
-    },
-    {
-      "description": "Reports page feature expansion (filters, summary cards, retailer-wise ledger table, CSV export).",
-      "reason": "Not requested by REQ-38–REQ-41; unrelated to admin role management.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/reports/ReportsPage.tsx)",
-        "frontend-file-summaries.txt (frontend/src/components/reports/ReportsFilters.tsx)",
-        "frontend-file-summaries.txt (frontend/src/components/reports/RetailerLedgerTable.tsx)"
-      ]
-    },
-    {
-      "description": "Project state indicating a shift from Internet Identity auth to email+password with account creation and multi-account admin/user management.",
-      "reason": "Explicitly out of scope/non-goal (third-party auth providers not requested; also contradicts the existing Internet Identity-based setup used in the diff).",
-      "evidence": [
-        "project_state.json (summary field)"
+        "frontend-file-summaries.txt (mentions AdminDashboardPage cards/layout; RawDataUploadPage template download, search/filter, pagination, danger zone)",
+        "frontend/src/pages/admin/AdminDashboardPage.tsx (as referenced in frontend-file-summaries.txt)",
+        "frontend/src/pages/admin/RawDataUploadPage.tsx (as referenced in frontend-file-summaries.txt)"
       ]
     }
   ],
-  "confidence": 0.64,
+  "confidence": 0.66,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/auth/AccessDeniedScreen.tsx",
-    "frontend/src/components/auth/ProfileSetupModal.tsx",
-    "frontend/src/components/auth/ProfileSetupPrompt.tsx",
-    "frontend/src/components/layout/AppLayout.tsx",
-    "frontend/src/hooks/useCurrentUser.ts",
+    "frontend/src/components/reports/RetailerLedgerTable.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/LoginPage.tsx",
-    "frontend/src/pages/admin/UserManagementPage.tsx",
+    "frontend/src/pages/payments/EditPaymentEntryPage.tsx",
+    "frontend/src/pages/payments/PaymentEntryPage.tsx",
+    "frontend/src/utils/export/exportReportsToXlsx.ts",
+    "frontend/src/utils/payments/paymentDates.ts",
     "project_state.json"
   ]
 }
