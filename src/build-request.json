@@ -1,0 +1,38 @@
+{
+  "kind": "build_request",
+  "title": "Publish current ADPL app draft to Live",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-15",
+      "text": "Promote the current draft build of the ADPL Payment Entry & Collection Tracking System to the Live (public) version now, without making additional functional changes.",
+      "target": "unknown",
+      "source": {
+        "messageIds": [
+          "msg-recent-12"
+        ],
+        "quotes": [
+          "It's ok make it live now"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Live version matches the latest draft version at the time this request is executed.",
+        "No additional code changes/features are introduced as part of publishing.",
+        "After publishing, the live URL loads the app successfully and the login screen is reachable."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not introduce new functionality or change existing behavior as part of going live.",
+    "User-facing text must remain in English."
+  ],
+  "nonGoals": [
+    "Fixing the reported role mismatch issue (Admin selection still showing as User).",
+    "Changing role assignment rules for Internet Identity or user profiles.",
+    "Any UI/UX redesign or feature additions."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

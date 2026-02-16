@@ -1,0 +1,23 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Publish current ADPL app draft to Live (frontend release checklist)",
+  "requirements": [
+    {
+      "id": "REQ-15",
+      "summary": "Promote the latest draft build to Live without introducing any functional changes, ensuring the live URL loads and the login screen is reachable.",
+      "acceptanceCriteria": [
+        "The Live version matches the latest draft version at the time this request is executed.",
+        "No additional code changes/features are introduced as part of publishing.",
+        "After publishing, the live URL loads the app successfully and the login screen is reachable."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/docs/publish-live.md",
+          "operation": "create",
+          "description": "Add an English-only, non-functional release checklist documenting the steps to promote the current draft build to Live, including a smoke-test verifying the app loads and the existing login screen is reachable at the live URL (no UI/behavior changes)."
+        }
+      ]
+    }
+  ]
+}

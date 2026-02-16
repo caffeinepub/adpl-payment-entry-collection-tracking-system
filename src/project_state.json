@@ -1,0 +1,216 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 5,
+  "summary": "Build a professional, clean, mobile-friendly Payment Entry and Collection Tracking System web app for ADPL (distribution company), including role-based login, admin dashboard, Excel raw data upload, payment entry with split modes, excess handling, reports/exports, and audit/validation features; layout ready for backend integration.",
+  "architectural_notes": [
+    "Build as a simple web-based application layout ready for further backend integration.",
+    "Support Excel (.xlsx) import/export for raw data and reports.",
+    "Implement role-based access control (Admin/Salesman/Supplier), including admin-only edit permissions.",
+    "Maintain audit metadata on payment entries (timestamp and user who entered/edited)."
+  ],
+  "known_issues": [
+    "Previous build attempt failed (AI unable to implement request); user requested retry.",
+    "User reports role mismatch: after selecting/saving Admin in UI, app still shows role as User and Upload Excel option remains hidden (possible role assignment/UX issue with Internet Identity-based roles)."
+  ],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-implement-authentication-using-internet-identity-and-role-based-access-control-with-roles-admin-salesman-supplier-provide-a-secure-login-screen-that-signs-in-with-internet-identity-and-then-redirects-to-the-correct-dashboard-landing-page-based-on-the-user-s-assigned-role",
+      "title": "Implement authentication using Internet Identity and role-based access control with roles: Admin, Salesman, Supplier. Provide a secure login screen that signs in with Internet Identity and then redirects to the correct dashboard/landing page based on the user’s assigned role.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-admin-dashboard-ui-that-shows-summary-cards-for-total-outstanding-total-collection-excess-collection-and-pending-balance-display-the-company-name-adpl-prominently-in-the-header-and-include-the-footer-text-2026-adpl-distribution-management-system",
+      "title": "Create an Admin Dashboard UI that shows summary cards for: Total Outstanding, Total Collection, Excess Collection, and Pending Balance. Display the company name “ADPL” prominently in the header and include the footer text “© 2026 ADPL Distribution Management System”.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-a-raw-data-upload-module-for-admin-to-upload-excel-xlsx-containing-columns-retailer-code-retailer-name-invoice-number-invoice-date-salesman-name-balance-amount-parse-the-file-client-side-validate-required-columns-and-send-the-parsed-rows-to-the-backend-to-be-stored-after-upload-auto-display-the-dataset-in-a-paginated-table",
+      "title": "Build a Raw Data Upload module for Admin to upload Excel (.xlsx) containing columns: Retailer Code, Retailer Name, Invoice Number, Invoice Date, Salesman Name, Balance Amount. Parse the file client-side, validate required columns, and send the parsed rows to the backend to be stored. After upload, auto-display the dataset in a paginated table.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-table-tools-on-the-raw-data-list-search-by-retailer-name-search-by-retailer-code-search-by-invoice-number-and-filter-by-salesman-name",
+      "title": "Add table tools on the Raw Data list: search by retailer name, search by retailer code, search by invoice number, and filter by salesman name.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-payment-entry-workflow-clicking-a-retailer-invoice-row-opens-a-payment-entry-form-showing-read-only-invoice-fields-retailer-code-name-invoice-number-date-salesman-name-balance-amount-and-an-editable-payment-entry-section-with-required-type-srr1-supplier-srr2-salesman-tfc-and-multi-mode-payments",
+      "title": "Implement the Payment Entry workflow: clicking a retailer/invoice row opens a Payment Entry Form showing read-only invoice fields (Retailer Code/Name, Invoice Number/Date, Salesman Name, Balance Amount) and an editable Payment Entry section with required Type (SRR1 Supplier / SRR2 Salesman / TFC) and multi-mode payments.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-support-split-part-payments-via-an-add-another-payment-mode-action-that-allows-entering-multiple-payment-lines-e-g-part-cash-part-cheque-part-upi-auto-calculate-the-total-entered-amount-and-compare-it-to-the-invoice-balance-amount-in-real-time",
+      "title": "Support split/part payments via an “Add Another Payment Mode” action that allows entering multiple payment lines (e.g., part cash, part cheque, part UPI). Auto-calculate the total entered amount and compare it to the invoice Balance Amount in real time.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-validation-rules-on-the-payment-entry-form-amounts-cannot-be-negative-cheque-number-is-mandatory-when-cheque-is-selected-transaction-id-is-mandatory-when-neft-rtgs-upi-is-selected-cannot-submit-an-empty-payment-form-require-at-least-one-payment-line-with-a-positive-amount",
+      "title": "Implement validation rules on the Payment Entry Form: amounts cannot be negative; cheque number is mandatory when Cheque is selected; transaction ID is mandatory when NEFT/RTGS/UPI is selected; cannot submit an empty payment form; require at least one payment line with a positive amount.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-excess-payment-handling-determine-status-based-on-total-entered-vs-balance-amount-fully-paid-partially-paid-excess-payment-if-excess-occurs-show-the-warning-text-exactly-entered-amount-exceeds-balance-excess-will-be-recorded-store-the-excess-amount-separately-from-normal-collection-in-backend-records",
+      "title": "Implement excess payment handling: determine status based on total entered vs Balance Amount (Fully Paid, Partially Paid, Excess Payment). If excess occurs, show the warning text exactly: “Entered amount exceeds balance. Excess will be recorded.” Store the excess amount separately from normal collection in backend records.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-submit-of-a-payment-entry-save-the-entry-update-remaining-balance-automatically-and-display-the-confirmation-message-exactly-payment-successfully-recorded-for-adpl",
+      "title": "On submit of a payment entry, save the entry, update remaining balance automatically, and display the confirmation message exactly: “Payment successfully recorded for ADPL”.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-payment-history-per-retailer-invoice-provide-a-view-that-lists-all-recorded-payments-with-timestamp-entered-by-type-mode-line-items-totals-and-status-expose-this-from-the-backend-and-render-it-in-the-frontend",
+      "title": "Add Payment History per retailer/invoice: provide a view that lists all recorded payments with timestamp, entered-by, type, mode line items, totals, and status. Expose this from the backend and render it in the frontend.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-admin-only-edit-of-an-existing-payment-entry-admin-can-open-a-recorded-payment-entry-modify-it-including-split-lines-and-save-changes-the-system-must-recompute-related-totals-remaining-balance-total-collected-excess-consistently",
+      "title": "Implement Admin-only edit of an existing payment entry: Admin can open a recorded payment entry, modify it (including split lines), and save changes; the system must recompute related totals (remaining balance, total collected, excess) consistently.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-reports-section-with-filters-date-range-salesman-type-mode-of-payment-and-outputs-total-collected-total-excess-pending-balance-and-a-retailer-wise-ledger-provide-an-excel-export-download-of-report-results",
+      "title": "Create a Reports section with filters (date range, salesman, type, mode of payment) and outputs: Total Collected, Total Excess, Pending Balance, and a Retailer-wise Ledger. Provide an Excel export download of report results.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-corporate-clean-professional-blue-white-visual-design-system-across-the-app-with-mobile-responsive-layouts-and-consistent-ui-for-forms-tables-and-dashboard-cards",
+      "title": "Apply a corporate, clean, professional Blue & White visual design system across the app with mobile-responsive layouts and consistent UI for forms, tables, and dashboard cards.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-promote-the-current-draft-build-of-the-adpl-payment-entry-collection-tracking-system-to-the-live-public-version-now-without-making-additional-functional-changes",
+      "title": "Promote the current draft build of the ADPL Payment Entry & Collection Tracking System to the Live (public) version now, without making additional functional changes.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Role-based login system (Admin, Salesman, Supplier) with secure login page and post-login dashboard redirect",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Admin dashboard with summary cards (Total Outstanding, Total Collection, Excess Collection, Pending Balance) and Excel report download",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Raw data upload module for .xlsx with required columns, auto-display table, search (retailer name/code), and filter by salesman",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Payment entry form opened from retailer/invoice row with read-only invoice fields and payment type + multi-mode payment inputs (Cash/Cheque/NEFT-RTGS-UPI)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Part/split payment support with 'Add Another Payment Mode', auto-total calculation, and comparison to balance amount",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Excess payment handling with status (Fully Paid/Partially Paid/Excess Payment), warning message, and separate excess storage",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Submission workflow to save payment entry, auto-update remaining balance, and show confirmation message",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Reports section with filters (date range, salesman, type, mode), retailer-wise ledger, totals (collected/excess/pending), and Excel export",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "UI/UX design requirements: corporate blue/white theme, ADPL header, clean dashboard cards, mobile responsive, paginated tables, professional layout",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Extra features: search by invoice number, payment history per retailer, admin-only edit entry, auto timestamp, and user tracking (who entered data)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Validation rules: no negative amounts; cheque number required if cheque; transaction ID required if online; cannot submit empty form",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Footer text: © 2026 ADPL Distribution Management System",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Implement backend data models and storage for raw uploaded invoices, payment entries, users/roles, and computed balances, including audit fields (created timestamp and entered-by principal) on every payment entry.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "ADPL Payment Entry & Collection Tracking System",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}
