@@ -50,6 +50,7 @@ export interface _SERVICE {
     string
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'clearAllData' : ActorMethod<[], undefined>,
   'editPayment' : ActorMethod<
     [bigint, bigint, PaymentType, PaymentMode],
     undefined

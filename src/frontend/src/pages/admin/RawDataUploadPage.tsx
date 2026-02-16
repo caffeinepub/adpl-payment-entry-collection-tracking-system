@@ -1,19 +1,31 @@
 import { useState } from 'react';
-import { useGetAllInvoices, useUploadInvoices } from '../../hooks/useQueries';
+import { useGetAllInvoices, useUploadInvoices, useClearAllData } from '../../hooks/useQueries';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import InvoicesTable from '../../components/tables/InvoicesTable';
 import { parseInvoicesXlsx } from '../../utils/excel/parseInvoicesXlsx';
 import { toast } from 'sonner';
-import { Upload, Search } from 'lucide-react';
+import { Upload, Search, Trash2, AlertTriangle } from 'lucide-react';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { filterInvoices } from '../../utils/filtering/invoiceFilters';
 
 export default function RawDataUploadPage() {
   const { data: invoices = [], isLoading } = useGetAllInvoices();
   const uploadMutation = useUploadInvoices();
+  const clearDataMutation = useClearAllData();
   const { isAdmin } = useCurrentUser();
   const [uploading, setUploading] = useState(false);
   const [searchRetailerName, setSearchRetailerName] = useState('');
@@ -38,6 +50,15 @@ export default function RawDataUploadPage() {
     }
   };
 
+  const handleClearAllData = async () => {
+    try {
+      await clearDataMutation.mutateAsync();
+      toast.success('All data has been cleared successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to clear data');
+    }
+  };
+
   const filteredInvoices = filterInvoices(invoices, {
     retailerName: searchRetailerName,
     retailerCode: searchRetailerCode,
@@ -57,51 +78,124 @@ export default function RawDataUploadPage() {
       </div>
 
       {isAdmin && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Raw Data</CardTitle>
-            <CardDescription>
-              Upload CSV or tab-separated file with invoice data
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="file-upload">Select File (CSV or Tab-separated)</Label>
-                <div className="mt-2 flex items-center gap-4">
-                  <Input
-                    id="file-upload"
-                    type="file"
-                    accept=".csv,.txt,.xlsx"
-                    onChange={handleFileUpload}
-                    disabled={uploading}
-                    className="max-w-md"
-                  />
-                  {uploading && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                      Uploading...
-                    </div>
-                  )}
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload Raw Data</CardTitle>
+              <CardDescription>
+                Upload CSV or tab-separated file with invoice data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="file-upload">Select File (CSV or Tab-separated)</Label>
+                  <div className="mt-2 flex items-center gap-4">
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      accept=".csv,.txt,.xlsx"
+                      onChange={handleFileUpload}
+                      disabled={uploading}
+                      className="max-w-md"
+                    />
+                    {uploading && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                        Uploading...
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p className="font-medium mb-1">Required columns:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Retailer Code</li>
+                    <li>Retailer Name</li>
+                    <li>Invoice Number</li>
+                    <li>Invoice Date</li>
+                    <li>Salesman Name</li>
+                    <li>Balance Amount</li>
+                  </ul>
+                  <p className="mt-2 text-xs">
+                    Note: File should be comma or tab separated. Excel files will be read as text.
+                  </p>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                <p className="font-medium mb-1">Required columns:</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Retailer Code</li>
-                  <li>Retailer Name</li>
-                  <li>Invoice Number</li>
-                  <li>Invoice Date</li>
-                  <li>Salesman Name</li>
-                  <li>Balance Amount</li>
-                </ul>
-                <p className="mt-2 text-xs">
-                  Note: File should be comma or tab separated. Excel files will be read as text.
-                </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-destructive">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                <CardTitle className="text-destructive">Danger Zone</CardTitle>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <CardDescription>
+                Permanently erase all invoices and payment data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  This action will permanently delete all invoices and payments from the system. 
+                  This cannot be undone. Use this to clear old data before uploading new records.
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      disabled={clearDataMutation.isPending}
+                      className="gap-2"
+                    >
+                      {clearDataMutation.isPending ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Clearing...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4" />
+                          Clear Old Data
+                        </>
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
+                        Are you absolutely sure?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="space-y-2">
+                        <p>
+                          This action will permanently delete:
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 ml-2">
+                          <li>All invoices ({invoices.length} total)</li>
+                          <li>All payment records</li>
+                          <li>All payment history</li>
+                        </ul>
+                        <p className="font-semibold text-foreground mt-4">
+                          This action cannot be undone.
+                        </p>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleClearAllData}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Yes, Clear All Data
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
+          </Card>
+        </>
       )}
 
       <Card>

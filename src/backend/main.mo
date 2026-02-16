@@ -11,6 +11,8 @@ import Int "mo:core/Int";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+
+
 actor {
   // Role-based Access Control
   let accessControlState = AccessControl.initState();
@@ -67,7 +69,7 @@ actor {
   };
 
   // Storage
-  let invoices = Map.empty<Text, Invoice>();
+  var invoices = Map.empty<Text, Invoice>();
   var payments = List.empty<PaymentEntry>();
   var nextPaymentId : Nat = 0;
   let userProfiles = Map.empty<Principal, UserProfile>();
@@ -103,6 +105,16 @@ actor {
     for (invoice in rawInvoices.values()) {
       invoices.add(invoice.invoiceNumber, invoice);
     };
+  };
+
+  // Clear All Data (Admin only)
+  public shared ({ caller }) func clearAllData() : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can clear data");
+    };
+    invoices := Map.empty<Text, Invoice>();
+    payments := List.empty<PaymentEntry>();
+    nextPaymentId := 0;
   };
 
   // Add Payment Entry (User and Admin)

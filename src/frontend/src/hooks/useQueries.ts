@@ -70,6 +70,25 @@ export function useUploadInvoices() {
   });
 }
 
+export function useClearAllData() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.clearAllData();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['paymentHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['reportsData'] });
+    },
+  });
+}
+
 export function useAddPayment() {
   const { actor } = useActor();
   const queryClient = useQueryClient();

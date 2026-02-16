@@ -1,16 +1,20 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
+  "projectStateVersion": 11,
   "summary": "Build a professional, clean, mobile-friendly Payment Entry and Collection Tracking System web app for ADPL (distribution company), including role-based login, admin dashboard, Excel raw data upload, payment entry with split modes, excess handling, reports/exports, and audit/validation features; layout ready for backend integration.",
   "architectural_notes": [
     "Build as a simple web-based application layout ready for further backend integration.",
     "Support Excel (.xlsx) import/export for raw data and reports.",
     "Implement role-based access control (Admin/Salesman/Supplier), including admin-only edit permissions.",
-    "Maintain audit metadata on payment entries (timestamp and user who entered/edited)."
+    "Maintain audit metadata on payment entries (timestamp and user who entered/edited).",
+    "Add robust file-type validation and parsing for uploads (XLSX vs CSV) and normalize imported fields to avoid runtime type errors in invoice/status logic.",
+    "Add admin-only data lifecycle controls (clear/reset/archive) for uploaded invoices and payment entries to support daily refresh workflows.",
+    "Add invoice ageing calculation (Ageing Days = today - invoiceDate) in invoice list views to support prioritizing/clearing oldest invoices first."
   ],
   "known_issues": [
     "Previous build attempt failed (AI unable to implement request); user requested retry.",
-    "User reports role mismatch: after selecting/saving Admin in UI, app still shows role as User and Upload Excel option remains hidden (possible role assignment/UX issue with Internet Identity-based roles)."
+    "User reports role mismatch: after selecting/saving Admin in UI, app still shows role as User and Upload Excel option remains hidden (possible role assignment/UX issue with Internet Identity-based roles).",
+    "Uploading invoice data as CSV causes runtime error when clicking 'Show Invoice': \"cannot use 'in' operator to search for paid in unpaid\" (likely status field type/shape mismatch after CSV import)."
   ],
   "isFixRequest": false,
   "existing_features": [
@@ -125,6 +129,46 @@
         "REQ-15"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-the-runtime-error-when-viewing-invoices-after-uploading-a-csv-file-cannot-use-in-operator-to-search-for-paid-in-unpaid-update-invoice-status-rendering-logic-so-it-safely-handles-the-shape-of-invoice-status-regardless-of-whether-it-is-represented-as-a-string-e-g-unpaid-or-as-a-variant-like-object-e-g-unpaid-null",
+      "title": "Fix the runtime error when viewing invoices after uploading a CSV file: \"cannot use 'in' operator to search for paid in unpaid\". Update invoice status rendering logic so it safely handles the shape of `invoice.status` regardless of whether it is represented as a string (e.g., \"unpaid\") or as a variant-like object (e.g., `{ unpaid: null }`).",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-admin-only-ui-control-in-the-invoice-management-raw-data-upload-page-to-erase-reset-all-existing-data-invoices-payments-with-a-confirmation-step-to-prevent-accidental-deletion",
+      "title": "Add an Admin-only UI control in the Invoice Management (Raw Data Upload) page to erase/reset all existing data (invoices + payments) with a confirmation step to prevent accidental deletion.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-expose-the-new-backend-reset-method-to-the-frontend-via-a-dedicated-react-query-mutation-hook-and-ensure-all-relevant-cached-queries-are-invalidated-cleared-after-a-successful-reset",
+      "title": "Expose the new backend reset method to the frontend via a dedicated React Query mutation hook and ensure all relevant cached queries are invalidated/cleared after a successful reset.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-invoice-management-page-to-present-the-existing-destructive-data-reset-action-as-a-clear-clear-old-data-button-admin-only-while-keeping-the-current-confirmation-dialog-safety-step",
+      "title": "Update the Admin \"Invoice Management\" page to present the existing destructive data reset action as a clear \"Clear Old Data\" button (admin-only) while keeping the current confirmation dialog safety step.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-ageing-days-feature-to-the-invoices-list-so-users-can-easily-identify-and-prioritize-older-invoices-compute-ageing-as-the-number-of-days-from-each-invoice-s-invoice-date-to-today-display-it-in-the-invoices-table-and-provide-a-ui-control-to-sort-invoices-by-ageing-oldest-first-newest-first",
+      "title": "Add an \"Ageing Days\" feature to the invoices list so users can easily identify and prioritize older invoices: compute ageing as the number of days from each invoice's Invoice Date to today, display it in the invoices table, and provide a UI control to sort invoices by ageing (oldest first / newest first).",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -206,6 +250,32 @@
       "reqIds": [
         "REQ-3"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Support CSV upload (or provide clear validation/error messaging when non-.xlsx is uploaded) to prevent runtime errors when viewing invoices",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Provide an Admin data-management option to erase/reset previously uploaded invoice/payment data (e.g., clear all data or clear by date range) so daily new invoices/payments can be uploaded fresh",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Add an Admin-only backend method that permanently erases previously uploaded invoice data and recorded payments so the system can be used fresh for daily updates.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Add an 'Ageing Days' feature (e.g., column/button) that calculates days from Invoice Date to today to help identify and clear older invoices first",
+      "reqIds": [],
       "status": "pending"
     }
   ],

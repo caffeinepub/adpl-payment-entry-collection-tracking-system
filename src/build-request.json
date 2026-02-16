@@ -1,38 +1,70 @@
 {
   "kind": "build_request",
-  "title": "Publish current ADPL app draft to Live",
-  "priority": "high",
+  "title": "Add invoice Ageing Days and improve Clear Old Data control",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-15",
-      "text": "Promote the current draft build of the ADPL Payment Entry & Collection Tracking System to the Live (public) version now, without making additional functional changes.",
-      "target": "unknown",
+      "id": "REQ-20",
+      "text": "Update the Admin \"Invoice Management\" page to present the existing destructive data reset action as a clear \"Clear Old Data\" button (admin-only) while keeping the current confirmation dialog safety step.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent-12"
+          "msg-3"
         ],
         "quotes": [
-          "It's ok make it live now"
+          "Okay add clear old data button..now add more button in Ageing days which cout from invoice date to so it easier to clear old invoice first"
         ]
       },
       "acceptanceCriteria": [
-        "The Live version matches the latest draft version at the time this request is executed.",
-        "No additional code changes/features are introduced as part of publishing.",
-        "After publishing, the live URL loads the app successfully and the login screen is reachable."
+        "On the Invoice Management page (frontend/src/pages/admin/RawDataUploadPage.tsx), the admin-only destructive action is clearly labeled as \"Clear Old Data\" (user-facing text).",
+        "The confirmation dialog remains required before the reset is executed.",
+        "The reset still calls the existing React Query mutation hook (useClearAllData) and shows success/failure toasts as it does today.",
+        "Non-admin users do not see the \"Clear Old Data\" control."
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "text": "Add an \"Ageing Days\" feature to the invoices list so users can easily identify and prioritize older invoices: compute ageing as the number of days from each invoice's Invoice Date to today, display it in the invoices table, and provide a UI control to sort invoices by ageing (oldest first / newest first).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "now add more button in Ageing days which cout from invoice date to so it easier to clear old invoice first"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The invoices table (frontend/src/components/tables/InvoicesTable.tsx) includes a new column labeled \"Ageing Days\" that displays an integer day count for each invoice based on Invoice Date -> today.",
+        "A sort control is available for Ageing Days (e.g., a button or clickable column header) that toggles sort order between oldest-first and newest-first, and the current sort direction is visible in the UI.",
+        "Sorting by Ageing Days reorders the displayed invoices accordingly (and works together with existing Search & Filter behavior on the Invoice Management page).",
+        "If an invoice date cannot be parsed into a valid date, the Ageing Days cell shows a safe fallback (e.g., \"—\"), and sorting places these rows consistently (e.g., at the bottom) without runtime errors.",
+        "No backend schema or storage changes are required for Ageing Days; it is computed client-side from the existing invoiceDate text field."
       ]
     }
   ],
   "constraints": [
-    "Do not introduce new functionality or change existing behavior as part of going live.",
-    "User-facing text must remain in English."
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (immutable paths).",
+    "Keep the backend as a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Fixing the reported role mismatch issue (Admin selection still showing as User).",
-    "Changing role assignment rules for Internet Identity or user profiles.",
-    "Any UI/UX redesign or feature additions."
+    "Do not implement backend-side ageing calculations or persistence for ageing days.",
+    "Do not add new reset modes (e.g., reset by date range) unless explicitly requested.",
+    "Do not change existing payment entry workflows, validation rules, or report calculations as part of this change."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

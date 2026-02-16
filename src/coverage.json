@@ -1,35 +1,49 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T02:15:54.465Z",
+  "generatedAt": "2026-02-16T03:09:42.570Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-15",
-        "summary": "Promote the current draft build of the ADPL Payment Entry & Collection Tracking System to the Live (public) version now, without making additional functional changes.",
+        "id": "REQ-20",
+        "summary": "Update the Admin \"Invoice Management\" page to present the existing destructive data reset action as a clear \"Clear Old Data\" button (admin-only) while keeping the current confirmation dialog safety step.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/docs/publish-live.md"
+          "frontend/src/pages/admin/RawDataUploadPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/docs/publish-live.md"
+          "frontend/src/pages/admin/RawDataUploadPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-21",
+        "summary": "Add an \"Ageing Days\" feature to the invoices list so users can easily identify and prioritize older invoices: compute ageing as the number of days from each invoice's Invoice Date to today, display it in the invoices table, and provide a UI control to sort invoices by ageing (oldest first / newest first).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/utils/invoices/ageingDays.ts",
+          "frontend/src/components/tables/InvoicesTable.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/utils/invoices/ageingDays.ts",
+          "frontend/src/components/tables/InvoicesTable.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
-    "build-template/README.md",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/docs/publish-live.md",
+    "frontend/src/components/tables/InvoicesTable.tsx",
+    "frontend/src/pages/admin/RawDataUploadPage.tsx",
+    "frontend/src/utils/invoices/ageingDays.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -137,6 +137,7 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     addPayment(invoiceNumber: string, retailerCode: string, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode): Promise<string>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    clearAllData(): Promise<void>;
     editPayment(paymentId: bigint, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode): Promise<void>;
     getAllInvoices(): Promise<Array<Invoice>>;
     getAllPayments(): Promise<Array<PaymentEntry>>;
@@ -197,6 +198,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n5(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async clearAllData(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.clearAllData();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.clearAllData();
             return result;
         }
     }

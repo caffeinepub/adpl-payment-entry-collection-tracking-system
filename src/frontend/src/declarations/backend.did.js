@@ -58,6 +58,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'clearAllData' : IDL.Func([], [], []),
   'editPayment' : IDL.Func(
       [IDL.Nat, IDL.Nat, PaymentType, PaymentMode],
       [],
@@ -154,6 +155,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'clearAllData' : IDL.Func([], [], []),
     'editPayment' : IDL.Func(
         [IDL.Nat, IDL.Nat, PaymentType, PaymentMode],
         [],

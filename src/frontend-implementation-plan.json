@@ -1,21 +1,45 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Publish current ADPL app draft to Live (frontend release checklist)",
+  "title": "Invoice Management UX: Clear Old Data button and Ageing Days sorting",
   "requirements": [
     {
-      "id": "REQ-15",
-      "summary": "Promote the latest draft build to Live without introducing any functional changes, ensuring the live URL loads and the login screen is reachable.",
+      "id": "REQ-20",
+      "summary": "Relabel the admin-only destructive reset action as a clear \"Clear Old Data\" button while keeping the confirmation dialog and existing mutation/toast behavior.",
       "acceptanceCriteria": [
-        "The Live version matches the latest draft version at the time this request is executed.",
-        "No additional code changes/features are introduced as part of publishing.",
-        "After publishing, the live URL loads the app successfully and the login screen is reachable."
+        "On the Invoice Management page (frontend/src/pages/admin/RawDataUploadPage.tsx), the admin-only destructive action is clearly labeled as \"Clear Old Data\" (user-facing text).",
+        "The confirmation dialog remains required before the reset is executed.",
+        "The reset still calls the existing React Query mutation hook (useClearAllData) and shows success/failure toasts as it does today.",
+        "Non-admin users do not see the \"Clear Old Data\" control."
       ],
       "file_operations": [
         {
-          "path": "frontend/docs/publish-live.md",
+          "path": "frontend/src/pages/admin/RawDataUploadPage.tsx",
+          "operation": "modify",
+          "description": "Update user-facing labels for the existing destructive action: change the button text to \"Clear Old Data\" and adjust the confirmation dialog action text accordingly, while preserving the existing AlertDialog confirmation flow, useClearAllData mutation usage, and toast success/failure handling. Keep the control admin-only by continuing to rely on the role gating provided by the selected \"authorization\" component via useCurrentUser().isAdmin (verify the component's usage instructions before implementing)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-21",
+      "summary": "Add an Ageing Days column computed client-side from Invoice Date and provide a visible toggle to sort invoices by ageing (oldest/newest first) with safe fallbacks for invalid dates.",
+      "acceptanceCriteria": [
+        "The invoices table (frontend/src/components/tables/InvoicesTable.tsx) includes a new column labeled \"Ageing Days\" that displays an integer day count for each invoice based on Invoice Date -> today.",
+        "A sort control is available for Ageing Days (e.g., a button or clickable column header) that toggles sort order between oldest-first and newest-first, and the current sort direction is visible in the UI.",
+        "Sorting by Ageing Days reorders the displayed invoices accordingly (and works together with existing Search & Filter behavior on the Invoice Management page).",
+        "If an invoice date cannot be parsed into a valid date, the Ageing Days cell shows a safe fallback (e.g., \"—\"), and sorting places these rows consistently (e.g., at the bottom) without runtime errors.",
+        "No backend schema or storage changes are required for Ageing Days; it is computed client-side from the existing invoiceDate text field."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/utils/invoices/ageingDays.ts",
           "operation": "create",
-          "description": "Add an English-only, non-functional release checklist documenting the steps to promote the current draft build to Live, including a smoke-test verifying the app loads and the existing login screen is reachable at the live URL (no UI/behavior changes)."
+          "description": "Create client-side helpers to (1) safely parse the existing invoiceDate string into a Date when possible and (2) compute an integer Ageing Days value as the day difference from invoice date to today, returning a null/undefined-friendly result for invalid/unparseable dates so the UI can render a fallback and sort consistently."
+        },
+        {
+          "path": "frontend/src/components/tables/InvoicesTable.tsx",
+          "operation": "modify",
+          "description": "Add an \"Ageing Days\" column that displays the computed day count (or a safe fallback like \"—\" when not computable) using the new ageingDays utility; add a visible sort toggle control in the Ageing Days column header to switch between oldest-first and newest-first; apply sorting before pagination and ensure invalid-date rows are placed consistently (e.g., always at the bottom) without runtime errors. Ensure the sort works on the already filtered invoices list provided by the Invoice Management page."
         }
       ]
     }

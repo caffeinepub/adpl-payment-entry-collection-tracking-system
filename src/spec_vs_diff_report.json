@@ -1,41 +1,16 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T02:15:54.463Z",
-  "summary": "REQ-15 asks only to promote the current draft build to Live with no functional/code changes. The diff shows addition of a new publishing checklist document and modifications indicating numerous frontend feature implementations/changes, but does not show any deployment/publishing configuration or steps that would actually promote a draft to Live.",
-  "missing_requirements": [
-    {
-      "id": "REQ-15",
-      "requirement": "Promote the current draft build to the Live (public) version now, without making additional functional changes; ensure the live URL loads and the login screen is reachable.",
-      "reason": "The diff contains no evidence of deployment/publishing configuration changes (e.g., hosting config, CI/CD, environment switching) that would actually publish the draft to Live. Additionally, the modified file summary indicates many frontend changes, which conflicts with the 'no additional code changes/features' acceptance criterion.",
-      "evidence": [
-        "frontend/docs/publish-live.md",
-        "frontend-file-summaries.txt",
-        "project_state.json"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "Added a detailed 'Go Live Checklist' doc covering authentication/authorization rules, core feature smoke tests, known limitations, and support steps.",
-      "reason": "REQ-15 did not request new documentation content; it requested publishing the existing draft to Live with no additional changes.",
-      "evidence": [
-        "frontend/docs/publish-live.md"
-      ]
-    },
-    {
-      "description": "Implemented/changed numerous frontend application features (routing, role-based access control, profile setup modal, admin dashboard, invoice upload/search/filter, payment entry/history/edit, reports with CSV export, layout/navigation, query hooks/cache invalidation, parsing utilities, etc.).",
-      "reason": "REQ-15 explicitly requires no additional code changes/features as part of going live; these appear to be functional additions/changes unrelated to deployment-only promotion.",
-      "evidence": [
-        "frontend-file-summaries.txt",
-        "project_state.json"
-      ]
-    }
-  ],
-  "confidence": 0.72,
+  "generatedAt": "2026-02-16T03:09:42.567Z",
+  "summary": "REQ-21 appears implemented via a new client-side ageing-days utility and a new sortable \"Ageing Days\" column in the invoices table, including safe fallback handling for unparsable dates. REQ-20 appears implemented by showing an admin-only \"Clear Old Data\" control on the Invoice Management page using the existing useClearAllData mutation and an AlertDialog confirmation, but the diff excerpt of RawDataUploadPage.tsx is truncated before the actual button/dialog wiring is fully visible.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/docs/publish-live.md",
+    "frontend/src/components/tables/InvoicesTable.tsx",
+    "frontend/src/pages/admin/RawDataUploadPage.tsx",
+    "frontend/src/utils/invoices/ageingDays.ts",
     "project_state.json"
   ]
 }

@@ -54,6 +54,7 @@ export enum UserRole {
 export interface backendInterface {
     addPayment(invoiceNumber: string, retailerCode: string, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode): Promise<string>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    clearAllData(): Promise<void>;
     editPayment(paymentId: bigint, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode): Promise<void>;
     getAllInvoices(): Promise<Array<Invoice>>;
     getAllPayments(): Promise<Array<PaymentEntry>>;
