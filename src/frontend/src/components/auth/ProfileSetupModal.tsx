@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ProfileSetupModalProps {
@@ -16,7 +18,6 @@ export default function ProfileSetupModal({ open, onOpenChange }: ProfileSetupMo
   const { actor } = useActor();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
-  const [role, setRole] = useState('user');
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -32,7 +33,8 @@ export default function ProfileSetupModal({ open, onOpenChange }: ProfileSetupMo
 
     setSaving(true);
     try {
-      await actor.saveCallerUserProfile({ name: name.trim(), role });
+      // Save profile with default 'user' role - admin access is assigned by administrators
+      await actor.saveCallerUserProfile({ name: name.trim(), role: 'user' });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserRole'] });
       toast.success('Profile created successfully');
@@ -58,6 +60,12 @@ export default function ProfileSetupModal({ open, onOpenChange }: ProfileSetupMo
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              Your role (Admin/User) is assigned by a system administrator. You will start with standard user access.
+            </AlertDescription>
+          </Alert>
           <div>
             <Label htmlFor="name">Your Name</Label>
             <Input
@@ -68,18 +76,6 @@ export default function ProfileSetupModal({ open, onOpenChange }: ProfileSetupMo
               className="mt-1"
               autoFocus
             />
-          </div>
-          <div>
-            <Label htmlFor="role">Role</Label>
-            <select
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
           </div>
           <div className="flex gap-2">
             <Button onClick={handleSave} disabled={saving} className="flex-1">

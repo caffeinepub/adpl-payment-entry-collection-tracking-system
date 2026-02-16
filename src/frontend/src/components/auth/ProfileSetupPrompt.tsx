@@ -18,7 +18,7 @@ export default function ProfileSetupPrompt() {
         <User className="h-4 w-4" />
         <AlertDescription className="flex items-center justify-between gap-4">
           <span className="flex-1">
-            Complete your profile to personalize your experience and help your team identify you.
+            Complete your profile to help your team identify you. Your role will be assigned by an administrator.
           </span>
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={() => setModalOpen(true)}>

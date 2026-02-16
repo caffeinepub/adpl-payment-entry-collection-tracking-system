@@ -15,10 +15,13 @@ export default function AccessDeniedScreen() {
           </div>
           <CardTitle>Access Denied</CardTitle>
           <CardDescription>
-            You don't have permission to access this page
+            This page requires Admin permissions. Only users who have been granted Admin access by an administrator can view this content.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground text-center">
+            If you believe you should have access to this page, please contact your system administrator.
+          </p>
           <Button onClick={() => navigate({ to: '/' })} className="w-full">
             Go to Home
           </Button>

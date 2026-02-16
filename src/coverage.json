@@ -1,52 +1,68 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T03:55:46.421Z",
+  "generatedAt": "2026-02-16T04:29:03.349Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-24",
-        "summary": "Update the post-login onboarding so that a missing user profile does not block access to the app. Specifically, when the authenticated user has no saved profile, do not force a modal that prevents interacting with the app; instead allow the user to continue and optionally complete profile setup.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/components/auth/ProfileSetupPrompt.tsx",
-          "frontend/src/components/layout/AppLayout.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/components/auth/ProfileSetupPrompt.tsx",
-          "frontend/src/components/layout/AppLayout.tsx"
-        ]
-      },
-      {
-        "id": "REQ-25",
-        "summary": "Relax backend authorization for basic user bootstrap so newly authenticated principals can read/create their own profile and fetch their effective role without being pre-granted permissions. Ensure these methods only reject anonymous callers, not first-time authenticated users.",
+        "id": "REQ-38",
+        "summary": "Add a backend admin-only capability to change another user’s effective authorization role from \"user\" to \"admin\" (and optionally back to \"user\"), so that a user account can be promoted to admin and immediately gain access to admin-only operations (e.g., invoice upload and clear data).",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-26",
-        "summary": "Adjust authenticated routing and layout rendering to handle users with missing/unknown role gracefully (treat as a non-admin default) so the UI remains usable while profile/role data loads or is absent.",
+        "id": "REQ-39",
+        "summary": "Add an Admin-only frontend UI flow to promote/demote users between \"User\" and \"Admin\" roles, so an admin can manage roles without needing developer intervention.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useCurrentUser.ts",
+          "frontend/src/pages/admin/UserManagementPage.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/backend.d.ts",
           "frontend/src/App.tsx",
           "frontend/src/components/layout/AppLayout.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useCurrentUser.ts",
+          "frontend/src/pages/admin/UserManagementPage.tsx",
+          "frontend/src/hooks/useQueries.ts",
           "frontend/src/App.tsx",
           "frontend/src/components/layout/AppLayout.tsx"
+        ]
+      },
+      {
+        "id": "REQ-40",
+        "summary": "Align profile setup and role display so that user-facing role selection does not mislead users: remove or disable any self-service role selection that does not actually grant admin permissions, and ensure the displayed role reflects the effective authorization role used for gating admin features.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/auth/ProfileSetupModal.tsx",
+          "frontend/src/components/layout/AppLayout.tsx",
+          "frontend/src/hooks/useCurrentUser.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/auth/ProfileSetupModal.tsx",
+          "frontend/src/components/layout/AppLayout.tsx",
+          "frontend/src/hooks/useCurrentUser.ts"
+        ]
+      },
+      {
+        "id": "REQ-41",
+        "summary": "Add backend and frontend safeguards and messaging to explain how a \"User\" becomes an \"Admin\" in this system, using English user-facing text.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/LoginPage.tsx",
+          "frontend/src/components/auth/ProfileSetupPrompt.tsx",
+          "frontend/src/components/auth/AccessDeniedScreen.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/LoginPage.tsx",
+          "frontend/src/components/auth/ProfileSetupPrompt.tsx",
+          "frontend/src/components/auth/AccessDeniedScreen.tsx"
         ]
       }
     ]
@@ -58,10 +74,14 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
+    "frontend/src/components/auth/AccessDeniedScreen.tsx",
     "frontend/src/components/auth/ProfileSetupModal.tsx",
     "frontend/src/components/auth/ProfileSetupPrompt.tsx",
     "frontend/src/components/layout/AppLayout.tsx",
     "frontend/src/hooks/useCurrentUser.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/LoginPage.tsx",
+    "frontend/src/pages/admin/UserManagementPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

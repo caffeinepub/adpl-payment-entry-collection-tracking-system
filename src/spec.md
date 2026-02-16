@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Make the post-login onboarding and role/profile bootstrap non-blocking so first-time authenticated users can access the app without getting stuck.
+**Goal:** Allow admins to promote/demote user accounts between User and Admin roles, with clear UI/UX messaging and persistent authorization that immediately enables admin-only actions.
 
 **Planned changes:**
-- Update the post-login onboarding flow so missing user profile does not block access (no forced always-open modal); allow continuing to the app with an optional profile setup path.
-- Relax backend authorization for first-time authenticated users so they can read/create their own profile and fetch an effective default role (reject anonymous only).
-- Adjust authenticated routing/layout to handle missing/unknown role gracefully by defaulting to a non-admin experience while data is absent/loading, and only show admin navigation when role is explicitly "admin".
+- Add an admin-only backend method to set a target user’s effective role (User/Admin), persisting the change and returning clear errors for unauthorized callers or unknown users.
+- Add an admin-only “User Management” UI section that lists users and their current effective roles, and allows promote/demote with confirmation and post-update UI refresh (cache invalidation).
+- Remove/disable any self-service role selection in profile setup for non-admin users and ensure role labels/navigation gating reflect the effective authorization role (not a user-editable field).
+- Add English guidance and access-denied messaging across relevant screens and endpoints explaining that only admins can grant admin access.
 
-**User-visible outcome:** After logging in with Internet Identity, users can reach and use the Invoices page even if they have no profile yet, can skip/defer profile setup, and the app remains usable with non-admin navigation unless they are explicitly an admin.
+**User-visible outcome:** Admins can manage which users are Admins from within the app, promoted users gain access to admin-only features after refresh/navigation, and non-admins see clear English messaging that they need admin permission (with no misleading self-promotion UI).

@@ -28,14 +28,15 @@ export function useCurrentUser() {
     retry: false,
   });
 
-  const userRole = roleQuery.data || 'user';
-  const isStillLoading = actorFetching || (roleQuery.isLoading && !roleQuery.isError);
+  // Use the effective role from backend, not the profile role field
+  const userRole = roleQuery.isFetched ? (roleQuery.data || 'user') : undefined;
+  const isStillLoading = actorFetching || roleQuery.isLoading;
 
   return {
     userProfile: profileQuery.data,
     userRole: userRole,
     isLoading: isStillLoading,
-    isFetched: !!actor && profileQuery.isFetched,
+    isFetched: !!actor && profileQuery.isFetched && roleQuery.isFetched,
     isAdmin: roleQuery.data === 'admin',
   };
 }

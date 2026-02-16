@@ -3,14 +3,14 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { LogOut, LayoutDashboard, FileText, BarChart3, Menu } from 'lucide-react';
+import { LogOut, LayoutDashboard, FileText, BarChart3, Menu, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import ProfileSetupPrompt from '../auth/ProfileSetupPrompt';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { identity, clear } = useInternetIdentity();
-  const { userProfile, userRole, isFetched } = useCurrentUser();
+  const { userProfile, userRole, isFetched, isLoading } = useCurrentUser();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,8 +24,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isAuthenticated = !!identity;
   const showProfilePrompt = isAuthenticated && isFetched && userProfile === null;
 
+  // Show role label with proper loading state
+  const roleLabel = isLoading ? 'Loading...' : (userRole || 'User');
+
   const navItems = [
-    ...(userRole === 'admin' ? [{ label: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' }] : []),
+    ...(userRole === 'admin' ? [
+      { label: 'Admin Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
+      { label: 'User Management', icon: Users, path: '/admin/users' },
+    ] : []),
     { label: 'Invoices', icon: FileText, path: '/invoices' },
     { label: 'Reports', icon: BarChart3, path: '/reports' },
   ];
@@ -58,7 +64,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
               <h1 className="text-2xl font-bold text-primary">ADPL</h1>
-              {identity && (
+              {identity && !isLoading && (
                 <nav className="hidden md:flex items-center gap-2">
                   <NavLinks />
                 </nav>
@@ -70,7 +76,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {userProfile && (
                   <div className="hidden sm:block text-sm">
                     <p className="font-medium">{userProfile.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{userRole || 'user'}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{roleLabel}</p>
                   </div>
                 )}
                 <Button variant="outline" size="sm" onClick={handleLogout} className="hidden md:flex">
@@ -88,12 +94,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       {userProfile && (
                         <div className="pb-4 border-b">
                           <p className="font-medium">{userProfile.name}</p>
-                          <p className="text-sm text-muted-foreground capitalize">{userRole || 'user'}</p>
+                          <p className="text-sm text-muted-foreground capitalize">{roleLabel}</p>
                         </div>
                       )}
-                      <nav className="flex flex-col gap-2">
-                        <NavLinks />
-                      </nav>
+                      {!isLoading && (
+                        <nav className="flex flex-col gap-2">
+                          <NavLinks />
+                        </nav>
+                      )}
                       <Button variant="outline" onClick={handleLogout} className="mt-4">
                         <LogOut className="mr-2 h-4 w-4" />
                         Logout

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 17,
-  "summary": "Build a professional, clean, mobile-friendly Payment Entry and Collection Tracking System web app for ADPL (distribution company), including role-based login, admin dashboard, Excel raw data upload, payment entry with split modes, excess handling, reports/exports, and audit/validation features; layout ready for backend integration.",
+  "projectStateVersion": 23,
+  "summary": "Shift authentication approach: replace Internet Identity login with a simple email + password login that supports account creation and managing multiple Admin/User accounts tied to employee codes, while keeping the rest of the ADPL Payment Entry & Collection Tracking System scope intact.",
   "architectural_notes": [
     "Build as a simple web-based application layout ready for further backend integration.",
     "Support Excel (.xlsx) import/export for raw data and reports.",
@@ -11,15 +11,20 @@
     "Add admin-only data lifecycle controls (clear/reset/archive) for uploaded invoices and payment entries to support daily refresh workflows.",
     "Add invoice ageing calculation (Ageing Days = today - invoiceDate) in invoice list views to support prioritizing/clearing oldest invoices first.",
     "Ensure the Salesman-facing invoice list/template includes an \"Ageing Days\" (overdue) column so salesmen can quickly identify older invoices first (ideally sortable oldest-first).",
-    "Revisit login UX strictness: reduce friction/overly strict checks so users can access the app reliably while keeping role-based access control intact."
+    "Revisit login UX strictness: reduce friction/overly strict checks so users can access the app reliably while keeping role-based access control intact.",
+    "Authentication direction change: implement email+password credentials with a simple account creation flow and user identity keyed by employee code (support multiple Admin/User accounts); deprecate Internet Identity dependency."
   ],
   "known_issues": [
     "Previous build attempt failed (AI unable to implement request); user requested retry.",
     "User reports role mismatch: after selecting/saving Admin in UI, app still shows role as User and Upload Excel option remains hidden (possible role assignment/UX issue with Internet Identity-based roles).",
     "Uploading invoice data as CSV causes runtime error when clicking 'Show Invoice': \"cannot use 'in' operator to search for paid in unpaid\" (likely status field type/shape mismatch after CSV import).",
-    "User reports the login page is too strict and not usable; requests a less restrictive login flow."
+    "User reports the login page is too strict and not usable; requests a less restrictive login flow.",
+    "Login flow does not persist correctly: on re-login the app prompts to create a new account each time instead of recognizing the existing account/session.",
+    "Role selection not sticking: user reports login always ends up as \"User\" account even when trying to use/admin role (admin-only UI remains hidden).",
+    "Internet Identity login is not usable for the user (unable to enter/use II), contributing to repeated login/account issues.",
+    "User asks how to change an account role from User to Admin, indicating role update/promotion flow is missing or unclear."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-implement-authentication-using-internet-identity-and-role-based-access-control-with-roles-admin-salesman-supplier-provide-a-secure-login-screen-that-signs-in-with-internet-identity-and-then-redirects-to-the-correct-dashboard-landing-page-based-on-the-user-s-assigned-role",
@@ -204,6 +209,94 @@
         "REQ-26"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-replace-the-current-internet-identity-login-screen-with-a-simple-email-password-login-ui-and-add-a-create-account-option-that-allows-creating-accounts-with-email-password-employee-code-and-role-selection-admin-user-all-user-facing-text-must-be-in-english",
+      "title": "Replace the current Internet Identity login screen with a simple Email + Password login UI and add a \"Create Account\" option that allows creating accounts with email, password, employee code, and role selection (Admin/User). All user-facing text must be in English.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-introduce-a-new-frontend-authentication-state-separate-from-the-existing-internet-identity-hook-that-persists-the-session-credential-returned-from-backend-login-e-g-localstorage-provides-login-logout-helpers-and-is-used-by-routing-layout-to-determine-whether-the-user-is-authenticated",
+      "title": "Introduce a new frontend authentication state (separate from the existing Internet Identity hook) that persists the session credential returned from backend login (e.g., localStorage), provides login/logout helpers, and is used by routing/layout to determine whether the user is authenticated.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-data-fetching-hooks-and-pages-to-call-the-backend-using-the-new-session-credential-and-to-derive-the-current-role-admin-user-from-the-backend-ensuring-existing-admin-only-ui-sections-e-g-dashboard-invoice-upload-clear-old-data-edit-payment-remain-correctly-gated",
+      "title": "Update frontend data-fetching hooks and pages to call the backend using the new session credential and to derive the current role (admin/user) from the backend, ensuring existing admin-only UI sections (e.g., Dashboard, Invoice Upload/Clear Old Data, Edit Payment) remain correctly gated.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-current-internet-identity-only-login-page-with-a-simple-email-password-login-ui-that-reliably-allows-existing-users-to-sign-in-without-being-forced-into-creating-a-new-account-each-time",
+      "title": "Replace the current Internet Identity-only Login page with a simple Email + Password login UI that reliably allows existing users to sign in without being forced into creating a new account each time.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-dedicated-frontend-authentication-state-separate-from-the-internet-identity-hook-that-persists-the-backend-session-credential-e-g-localstorage-and-is-used-to-determine-whether-the-user-is-authenticated-on-page-refresh-revisit",
+      "title": "Add a dedicated frontend authentication state (separate from the Internet Identity hook) that persists the backend session credential (e.g., localStorage) and is used to determine whether the user is authenticated on page refresh/revisit.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-role-handling-so-that-after-login-the-correct-role-admin-user-is-used-across-routing-and-ui-gating-and-the-user-is-no-longer-always-treated-as-user",
+      "title": "Fix role handling so that after login the correct role (Admin/User) is used across routing and UI gating, and the user is no longer always treated as \"User\".",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-post-login-landing-redirect-behavior-so-the-app-reliably-navigates-to-the-correct-landing-page-based-on-the-authenticated-user-s-role-using-the-new-session-based-authentication-admin-admin-dashboard-non-admin-invoices-page",
+      "title": "Update post-login landing/redirect behavior so the app reliably navigates to the correct landing page based on the authenticated user’s role using the new session-based authentication (admin -> admin dashboard; non-admin -> invoices page).",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-app-provides-a-usable-fallback-when-internet-identity-cannot-be-used-by-the-user-by-making-email-password-login-the-primary-path-and-not-blocking-access-on-internet-identity-availability",
+      "title": "Ensure the app provides a usable fallback when Internet Identity cannot be used by the user by making Email + Password login the primary path and not blocking access on Internet Identity availability.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-admin-only-frontend-ui-flow-to-promote-demote-users-between-user-and-admin-roles-so-an-admin-can-manage-roles-without-needing-developer-intervention",
+      "title": "Add an Admin-only frontend UI flow to promote/demote users between \"User\" and \"Admin\" roles, so an admin can manage roles without needing developer intervention.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-align-profile-setup-and-role-display-so-that-user-facing-role-selection-does-not-mislead-users-remove-or-disable-any-self-service-role-selection-that-does-not-actually-grant-admin-permissions-and-ensure-the-displayed-role-reflects-the-effective-authorization-role-used-for-gating-admin-features",
+      "title": "Align profile setup and role display so that user-facing role selection does not mislead users: remove or disable any self-service role selection that does not actually grant admin permissions, and ensure the displayed role reflects the effective authorization role used for gating admin features.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-backend-and-frontend-safeguards-and-messaging-to-explain-how-a-user-becomes-an-admin-in-this-system-using-english-user-facing-text",
+      "title": "Add backend and frontend safeguards and messaging to explain how a \"User\" becomes an \"Admin\" in this system, using English user-facing text.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -332,6 +425,50 @@
       "summary": "Relax backend authorization for basic user bootstrap so newly authenticated principals can read/create their own profile and fetch their effective role without being pre-granted permissions. Ensure these methods only reject anonymous callers, not first-time authenticated users.",
       "reqIds": [
         "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Replace Internet Identity authentication with simple Email + Password login, including a 'Create Account' flow and support for multiple Admin/User accounts associated with employee code",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Implement a simple email + password authentication system in the Motoko backend that supports account creation and login without requiring Internet Identity, and supports multiple accounts with roles (at minimum: \"admin\" and \"user\") tied to an \"employee code\" field.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Update backend authorization so all existing protected business operations (invoice upload, clear old data, reading invoices, adding/editing payments, reports, payment history) are authorized based on the new email/password session credential and role rules (admin-only where currently admin-only; user-permitted where currently user-permitted), instead of relying on Internet Identity principals.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Implement backend email/password authentication that supports: (1) creating an account, (2) logging in, and (3) returning a session credential that can be reused on future visits so the user does not need to create a new account on each re-login.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Provide a way to change an existing account’s role from User to Admin (e.g., Admin-only promote/demote user roles, or a clear role-update flow)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Add a backend admin-only capability to change another user’s effective authorization role from \"user\" to \"admin\" (and optionally back to \"user\"), so that a user account can be promoted to admin and immediately gain access to admin-only operations (e.g., invoice upload and clear data).",
+      "reqIds": [
+        "REQ-38"
       ],
       "status": "pending"
     }

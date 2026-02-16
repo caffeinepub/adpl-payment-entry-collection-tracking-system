@@ -1,62 +1,95 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Non-blocking onboarding and graceful role defaults",
+  "title": "Admin-controlled user role promotion (User ↔ Admin) UI",
   "requirements": [
     {
-      "id": "REQ-24",
-      "summary": "Make missing-profile onboarding non-blocking so users can access the app and optionally complete profile setup later.",
+      "id": "REQ-39",
+      "summary": "Add an admin-only User Management UI to view users and promote/demote roles with confirmation and cache refresh.",
       "acceptanceCriteria": [
-        "After logging in with Internet Identity, the user can reach the Invoices page even if no user profile exists yet.",
-        "The app does not show an always-open modal that prevents clicking elsewhere when the profile is missing.",
-        "If profile setup UI is shown, it includes a clear non-destructive option to defer/skip and continue using the app."
+        "An admin can access a \"User Management\" (or similarly named) section from within the authenticated app UI.",
+        "The UI lists user accounts/profiles that exist in the system and shows each user’s current effective role (Admin/User).",
+        "For each listed user, an admin can promote to Admin and (if implemented) demote to User, with a confirmation step for role changes.",
+        "After a successful role update, the UI shows the updated role without requiring a hard refresh (React Query cache is invalidated appropriately).",
+        "A non-admin user cannot see or access this role management UI (attempts show an English access denied experience)."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/pages/admin/UserManagementPage.tsx",
+          "operation": "create",
+          "description": "Create an admin-only \"User Management\" page that uses the selected \"authorization\" component concepts (effective role gating via backend-provided role) to render a user list with current effective roles and actions to promote/demote. Include an English confirmation step before applying role changes and show success/error toasts. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add React Query hooks for (1) fetching the list of existing users/profiles for User Management and (2) performing role updates (promote/demote or explicit set). Ensure onSuccess invalidates the user list query and, when applicable, invalidates current-user role/profile queries to reflect changes without a hard refresh. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Extend the generated backend interface types to include the role-management UI capabilities required by the new User Management screen (e.g., a function to list existing users/profiles and a function to set a user's role explicitly) so the frontend can call them in a type-safe way once backend support is present. Verify the component's usage instructions before implementing."
+        },
+        {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Remove the always-open blocking onboarding modal behavior by changing RootLayout so it does not unconditionally render ProfileSetupModal when userProfile is null; instead, render a non-blocking prompt entry point (e.g., banner/toast/inline callout) that lets the user continue using the app. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "operation": "modify",
-          "description": "Refactor the profile setup UI so it can be opened/closed by the user (controlled open state via props) and add a clear English \"Skip for now\" / \"Not now\" action that dismisses without saving; ensure it no longer prevents interacting with the rest of the app by default (no forced open=true, no outside-click prevention for the non-blocking flow). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/auth/ProfileSetupPrompt.tsx",
-          "operation": "create",
-          "description": "Create a small, non-blocking prompt component shown only when authenticated and userProfile is null, offering \"Set up profile\" (opens ProfileSetupModal) and \"Skip for now\" (dismisses prompt) actions, with all user-facing copy in English. Verify the component's usage instructions before implementing."
+          "description": "Wire the new User Management page into routing under an admin-only route (e.g., within the existing admin guard pattern used for /admin/dashboard and /edit-payment). Non-admin access must render the existing AccessDeniedScreen in English. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/layout/AppLayout.tsx",
           "operation": "modify",
-          "description": "Wire the new ProfileSetupPrompt into the authenticated layout (e.g., below the header within the main container) so it is visible but non-blocking when profile is missing; ensure navigation to Invoices remains available and usable even if the profile is not yet created. Verify the component's usage instructions before implementing."
+          "description": "Add a \"User Management\" navigation item that is only visible when the effective role from useCurrentUser is admin. Keep navigation visibility based on effective authorization role (not any user-editable profile field). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-26",
-      "summary": "Handle missing/unknown role gracefully by defaulting to non-admin UI and avoiding crashes or indefinite loading.",
+      "id": "REQ-40",
+      "summary": "Remove/disable self-service role selection and ensure role display/gating uses effective authorization role.",
       "acceptanceCriteria": [
-        "When authenticated and role is missing/undefined, the app defaults to the non-admin navigation and does not crash or get stuck on a loading state.",
-        "Admin-only navigation items remain hidden unless the resolved role is explicitly \"admin\".",
-        "User-facing text for any new prompts/buttons/toasts is in English."
+        "If the current profile setup UI allows choosing \"Admin\", it is replaced with an English explanation that roles are assigned by an administrator, or the role field is removed/disabled for non-admin users.",
+        "The header role label and admin-only navigation visibility are based on the effective role used by routing/gating (not a user-editable profile field).",
+        "After an admin changes a user’s role, that user’s next navigation/refresh correctly shows admin UI (e.g., Admin Dashboard link appears) when their effective role is admin."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useCurrentUser.ts",
+          "path": "frontend/src/components/auth/ProfileSetupModal.tsx",
           "operation": "modify",
-          "description": "Adjust role fetching state handling so role can be treated as optional: default to a non-admin role when role data is missing/undefined or when role fetching fails, and ensure isLoading does not remain true indefinitely on role-query failure; keep admin detection strict (only true when role === \"admin\"). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Update index/landing routing logic to remain usable while role is loading or missing: avoid blocking the app behind a loading screen longer than necessary, and ensure non-admin default routes (Invoices) render when role is unknown/undefined; keep admin-only rendering guarded by explicit \"admin\" role. Verify the component's usage instructions before implementing."
+          "description": "Remove or disable the role selector so users cannot self-select \"Admin\". Persist a default role consistent with effective authorization (e.g., save profile with role as \"user\" or omit role if supported), and add English helper text explaining that admin access is assigned by an administrator. Use the selected \"authorization\" component guidance to keep role meaning aligned with backend effective role. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/layout/AppLayout.tsx",
           "operation": "modify",
-          "description": "Ensure navigation rendering remains stable when userRole is missing/undefined by treating it as non-admin for UI purposes (admin items hidden unless role is explicitly \"admin\"), and ensure user identity display does not crash when profile is absent. Verify the component's usage instructions before implementing."
+          "description": "Ensure any displayed role label continues to reflect the effective role from useCurrentUser (caller role from backend), not the role stored in the editable profile payload. Confirm admin-only nav visibility uses effective role. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useCurrentUser.ts",
+          "operation": "modify",
+          "description": "Align current user helpers so the effective role is the single source of truth for admin gating and display (e.g., consistently derive isAdmin from the backend-provided role query result). Ensure role updates can be reflected by invalidating currentUserRole/currentUserProfile queries. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "summary": "Add English guidance and access-denied messaging explaining how users become admins and what happens when unauthorized.",
+      "acceptanceCriteria": [
+        "Login/Profile-related screens show English guidance explaining that only an admin can grant admin access (no ambiguous wording suggesting users can self-promote).",
+        "When a non-admin attempts an admin-only action, the user sees an English error or access denied message that indicates they need admin permission.",
+        "Backend error messages for role-management endpoints are clear and consistent (e.g., \"Unauthorized: Only admins can change roles\")."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/LoginPage.tsx",
+          "operation": "modify",
+          "description": "Strengthen the English guidance text to clearly state that admin access is granted by an existing administrator and cannot be self-assigned. Keep wording unambiguous and consistent with the selected \"authorization\" component’s role model. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/ProfileSetupPrompt.tsx",
+          "operation": "modify",
+          "description": "Add concise English guidance near profile setup prompting that role is assigned by an administrator (avoid implying self-promotion). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/auth/AccessDeniedScreen.tsx",
+          "operation": "modify",
+          "description": "Update English access denied messaging to explicitly indicate that the action/page requires Admin permissions and that a user must be granted Admin access by an administrator. Ensure this screen is used for non-admin access to admin-only routes. Verify the component's usage instructions before implementing."
         }
       ]
     }

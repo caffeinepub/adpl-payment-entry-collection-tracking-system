@@ -1,74 +1,108 @@
 {
   "kind": "build_request",
-  "title": "Make the login/onboarding flow less strict and non-blocking",
+  "title": "Add admin-controlled role promotion (User -> Admin)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-24",
-      "text": "Update the post-login onboarding so that a missing user profile does not block access to the app. Specifically, when the authenticated user has no saved profile, do not force a modal that prevents interacting with the app; instead allow the user to continue and optionally complete profile setup.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-20"
-        ],
-        "quotes": [
-          "Thanks for efforts but it's not use don't make login page that strict it's not usable for me"
-        ]
-      },
-      "acceptanceCriteria": [
-        "After logging in with Internet Identity, the user can reach the Invoices page even if no user profile exists yet.",
-        "The app does not show an always-open modal that prevents clicking elsewhere when the profile is missing.",
-        "If profile setup UI is shown, it includes a clear non-destructive option to defer/skip and continue using the app."
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "text": "Relax backend authorization for basic user bootstrap so newly authenticated principals can read/create their own profile and fetch their effective role without being pre-granted permissions. Ensure these methods only reject anonymous callers, not first-time authenticated users.",
+      "id": "REQ-38",
+      "text": "Add a backend admin-only capability to change another user’s effective authorization role from \"user\" to \"admin\" (and optionally back to \"user\"), so that a user account can be promoted to admin and immediately gain access to admin-only operations (e.g., invoice upload and clear data).",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-20"
+          "msg-4"
         ],
         "quotes": [
-          "don't make login page that strict it's not usable for me"
+          "How to account role user to admin"
         ]
       },
       "acceptanceCriteria": [
-        "A newly authenticated principal can successfully call getCallerUserProfile (returns null/none) without trapping due to authorization.",
-        "A newly authenticated principal can successfully call saveCallerUserProfile without trapping due to authorization.",
-        "A newly authenticated principal can successfully call getCallerUserRole (or equivalent existing role API used by the frontend) and receive a sensible default role (e.g., \"user\") without trapping."
+        "There is a new admin-only backend method that promotes a specified user to admin (and a corresponding method to demote back to user, or one method that sets role explicitly).",
+        "The method rejects anonymous callers and rejects non-admin callers with a clear \"Unauthorized\" error.",
+        "After promotion, the promoted user can successfully call existing admin-only backend methods (e.g., uploadInvoices, clearAllData) without changing any frontend code.",
+        "Role changes persist across page refresh and subsequent calls.",
+        "If the target user does not exist / has never been seen, the method returns a clear error instead of silently succeeding (or explicitly documents/implements the desired behavior)."
       ]
     },
     {
-      "id": "REQ-26",
-      "text": "Adjust authenticated routing and layout rendering to handle users with missing/unknown role gracefully (treat as a non-admin default) so the UI remains usable while profile/role data loads or is absent.",
+      "id": "REQ-39",
+      "text": "Add an Admin-only frontend UI flow to promote/demote users between \"User\" and \"Admin\" roles, so an admin can manage roles without needing developer intervention.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-20"
+          "msg-4"
         ],
         "quotes": [
-          "it's not usable for me"
+          "How to account role user to admin"
         ]
       },
       "acceptanceCriteria": [
-        "When authenticated and role is missing/undefined, the app defaults to the non-admin navigation and does not crash or get stuck on a loading state.",
-        "Admin-only navigation items remain hidden unless the resolved role is explicitly \"admin\".",
-        "User-facing text for any new prompts/buttons/toasts is in English."
+        "An admin can access a \"User Management\" (or similarly named) section from within the authenticated app UI.",
+        "The UI lists user accounts/profiles that exist in the system and shows each user’s current effective role (Admin/User).",
+        "For each listed user, an admin can promote to Admin and (if implemented) demote to User, with a confirmation step for role changes.",
+        "After a successful role update, the UI shows the updated role without requiring a hard refresh (React Query cache is invalidated appropriately).",
+        "A non-admin user cannot see or access this role management UI (attempts show an English access denied experience)."
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "text": "Align profile setup and role display so that user-facing role selection does not mislead users: remove or disable any self-service role selection that does not actually grant admin permissions, and ensure the displayed role reflects the effective authorization role used for gating admin features.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "How to account role user to admin"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If the current profile setup UI allows choosing \"Admin\", it is replaced with an English explanation that roles are assigned by an administrator, or the role field is removed/disabled for non-admin users.",
+        "The header role label and admin-only navigation visibility are based on the effective role used by routing/gating (not a user-editable profile field).",
+        "After an admin changes a user’s role, that user’s next navigation/refresh correctly shows admin UI (e.g., Admin Dashboard link appears) when their effective role is admin."
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "text": "Add backend and frontend safeguards and messaging to explain how a \"User\" becomes an \"Admin\" in this system, using English user-facing text.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "How to account role user to admin"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Login/Profile-related screens show English guidance explaining that only an admin can grant admin access (no ambiguous wording suggesting users can self-promote).",
+        "When a non-admin attempts an admin-only action, the user sees an English error or access denied message that indicates they need admin permission.",
+        "Backend error messages for role-management endpoints are clear and consistent (e.g., \"Unauthorized: Only admins can change roles\")."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; create backend/migration.mo only if an upgrade-state migration is required.",
-    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui."
+    "Backend must remain a single Motoko actor; place all new logic in backend/main.mo.",
+    "Create backend/migration.mo only if state/schema changes require an upgrade path, following the project’s conditional migration policy.",
+    "Do not edit any frontend files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any files in frontend/src/components/ui; compose them instead.",
+    "All user-facing text must be in English."
   ],
   "nonGoals": [
-    "Removing Internet Identity authentication or adding third-party authentication providers.",
-    "Changing existing business workflows for invoices, payments, reports, or data reset beyond what is needed to make login/onboarding less strict.",
-    "Granting admin privileges to everyone by default."
+    "Implementing third-party authentication providers (only existing app auth mechanisms are in scope).",
+    "Adding external databases or off-chain storage.",
+    "Building real-time role sync via websockets/push notifications."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

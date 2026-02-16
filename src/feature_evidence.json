@@ -2,13 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-post-login-onboarding-so-that-a-missing-user-profile-does-not-block-access-to-the-app-specifically-when-the-authenticated-user-has-no-saved-profile-do-not-force-a-modal-that-prevents-interacting-with-the-app-instead-allow-the-user-to-continue-and-optionally-complete-profile-setup",
-      "featureTitle": "Update the post-login onboarding so that a missing user profile does not block access to the app. Specifically, when the authenticated user has no saved profile, do not force a modal that prevents interacting with the app; instead allow the user to continue and optionally complete profile setup.",
+      "featureId": "feature-add-an-admin-only-frontend-ui-flow-to-promote-demote-users-between-user-and-admin-roles-so-an-admin-can-manage-roles-without-needing-developer-intervention",
+      "featureTitle": "Add an Admin-only frontend UI flow to promote/demote users between \"User\" and \"Admin\" roles, so an admin can manage roles without needing developer intervention.",
       "files": [
         "frontend/src/App.tsx",
-        "frontend/src/components/auth/ProfileSetupModal.tsx",
-        "frontend/src/components/auth/ProfileSetupPrompt.tsx",
-        "frontend/src/components/layout/AppLayout.tsx"
+        "frontend/src/components/layout/AppLayout.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/admin/UserManagementPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,15 +19,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-24"
+        "REQ-39"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-adjust-authenticated-routing-and-layout-rendering-to-handle-users-with-missing-unknown-role-gracefully-treat-as-a-non-admin-default-so-the-ui-remains-usable-while-profile-role-data-loads-or-is-absent",
-      "featureTitle": "Adjust authenticated routing and layout rendering to handle users with missing/unknown role gracefully (treat as a non-admin default) so the UI remains usable while profile/role data loads or is absent.",
+      "featureId": "feature-align-profile-setup-and-role-display-so-that-user-facing-role-selection-does-not-mislead-users-remove-or-disable-any-self-service-role-selection-that-does-not-actually-grant-admin-permissions-and-ensure-the-displayed-role-reflects-the-effective-authorization-role-used-for-gating-admin-features",
+      "featureTitle": "Align profile setup and role display so that user-facing role selection does not mislead users: remove or disable any self-service role selection that does not actually grant admin permissions, and ensure the displayed role reflects the effective authorization role used for gating admin features.",
       "files": [
-        "frontend/src/App.tsx",
+        "frontend/src/components/auth/ProfileSetupModal.tsx",
         "frontend/src/components/layout/AppLayout.tsx",
         "frontend/src/hooks/useCurrentUser.ts"
       ],
@@ -40,7 +40,28 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-26"
+        "REQ-40"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-backend-and-frontend-safeguards-and-messaging-to-explain-how-a-user-becomes-an-admin-in-this-system-using-english-user-facing-text",
+      "featureTitle": "Add backend and frontend safeguards and messaging to explain how a \"User\" becomes an \"Admin\" in this system, using English user-facing text.",
+      "files": [
+        "frontend/src/components/auth/AccessDeniedScreen.tsx",
+        "frontend/src/components/auth/ProfileSetupPrompt.tsx",
+        "frontend/src/pages/LoginPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-41"
       ],
       "confidence": "high"
     }

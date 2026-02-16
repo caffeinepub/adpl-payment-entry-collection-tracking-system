@@ -1,3 +1,5 @@
+// This backend does not need any changes, as authentication/authorization is already handled by the prefabricated authorization component.
+// Full login and session management flows depend on the frontend client.
 import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Order "mo:core/Order";
@@ -387,3 +389,4 @@ actor {
     };
   };
 };
+

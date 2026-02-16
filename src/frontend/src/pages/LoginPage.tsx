@@ -2,20 +2,37 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogIn } from 'lucide-react';
+import { LogIn, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react';
 
 export default function LoginPage() {
-  const { login, loginStatus } = useInternetIdentity();
+  const { login, loginStatus, clear } = useInternetIdentity();
   const queryClient = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
+    setError(null);
     try {
+      // Clear any stale data before login
+      queryClient.clear();
       await login();
     } catch (error: any) {
       console.error('Login error:', error);
+      
       if (error.message === 'User is already authenticated') {
+        // Clear existing session and retry
+        await clear();
         queryClient.clear();
-        setTimeout(() => login(), 300);
+        setTimeout(async () => {
+          try {
+            await login();
+          } catch (retryError: any) {
+            setError('Login failed. Please try again.');
+          }
+        }, 500);
+      } else {
+        setError('Login failed. Please try again or check your Internet Identity.');
       }
     }
   };
@@ -35,9 +52,17 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <p className="text-sm text-muted-foreground text-center">
             Sign in with Internet Identity to access the system
           </p>
+          
           <Button
             onClick={handleLogin}
             disabled={isLoggingIn}
@@ -52,10 +77,18 @@ export default function LoginPage() {
             ) : (
               <>
                 <LogIn className="mr-2 h-4 w-4" />
-                Sign In
+                Sign In with Internet Identity
               </>
             )}
           </Button>
+
+          <div className="text-xs text-muted-foreground text-center space-y-1 pt-2 border-t">
+            <p className="font-medium">First time here?</p>
+            <p>Internet Identity will create your account automatically.</p>
+            <p className="text-orange-600 dark:text-orange-400 font-medium">
+              Admin access must be granted by an existing administrator and cannot be self-assigned.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
