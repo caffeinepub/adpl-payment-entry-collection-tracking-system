@@ -20,7 +20,7 @@
   "frontend/src/utils/filtering/invoiceFilters.ts": "Pure functions for client-side invoice filtering by retailer name, retailer code, invoice number, and salesman name.",
   "frontend/src/utils/payments/paymentStatus.ts": "Payment calculation utilities determining total, remaining, excess amounts and payment status (Fully Paid/Partially Paid/Excess Payment).",
   "frontend/src/utils/validation/paymentEntryValidation.ts": "Payment entry validation logic checking required fields, negative amounts, mode-specific requirements (cheque number, transaction ID), and ensuring at least one positive payment amount.",
-  "frontend/src/utils/export/exportReportsToXlsx.ts": "CSV export utility generating formatted payment reports with batch payment support showing multiple invoice numbers joined with semicolons and a new DSE Name column that displays salesman names associated with each payment entry.",
+  "frontend/src/utils/export/exportReportsToXlsx.ts": "CSV export utility generating formatted payment reports with batch payment support, now showing \"Salesman Name\" instead of \"DSE Name\" and including a new \"Retailer Name\" column that displays retailer names associated with each payment entry.",
   "frontend/src/types/payment.ts": "TypeScript interface defining PaymentLine structure for split payment UI state management.",
   "frontend/src/index.css": "Global styles with OKLCH-based blue/white corporate color system for light and dark modes, customized for professional distribution company aesthetic.",
   "frontend/tailwind.config.js": "Tailwind configuration with corporate blue primary color (250° hue), custom shadows, Inter font family, and extended design tokens matching the ADPL brand.",

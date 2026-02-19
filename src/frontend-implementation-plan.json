@@ -1,66 +1,36 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix batch payment invoice selection functionality",
+  "title": "Replace DSE name with Salesman Name and add Retailer Name column in final report",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix the invoice selector in BatchPaymentEntryPage to allow users to select multiple invoices from the same or different retailers for a single batch payment using RTGS or cheque payment mode",
+      "summary": "Replace 'DSE name' column header with 'Salesman Name' in reports export",
       "acceptanceCriteria": [
-        "User can navigate to batch payment entry page",
-        "User can search and select multiple unpaid or partially paid invoices",
-        "Selected invoices display with their details (retailer, invoice number, amount)",
-        "User can proceed to enter payment details for the selected batch"
+        "The exported CSV/XLSX report shows 'Salesman Name' instead of 'DSE name' in the column header",
+        "The salesman data in the column remains unchanged, only the header label is updated"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/payments/InvoiceSelector.tsx",
+          "path": "frontend/src/utils/export/exportReportsToXlsx.ts",
           "operation": "modify",
-          "description": "Remove the 4-invoice limit and same-retailer restriction. Allow users to select multiple invoices from any retailer without limitations. Update the component to display selected invoices grouped by retailer with proper totals. Ensure the search functionality works correctly and users can add/remove invoices from their selection."
-        },
-        {
-          "path": "frontend/src/pages/payments/BatchPaymentEntryPage.tsx",
-          "operation": "modify",
-          "description": "Update the page to handle multiple invoices from different retailers in a single batch payment. Remove any validation that restricts invoice selection. Ensure the page properly passes selected invoices to the BatchPaymentForm component and handles the submission flow for batch payments with RTGS or cheque modes."
+          "description": "Update the CSV header generation to replace 'DSE name' with 'Salesman Name' in the column definitions. Locate the header array that includes 'DSE name' and change it to 'Salesman Name' while preserving all other headers and the data mapping logic."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single RTGS payment mode, capturing transaction ID and payment date",
+      "summary": "Add 'Retailer Name' column to the final report export",
       "acceptanceCriteria": [
-        "User can select 'Online Transfer' payment mode for batch payment",
-        "Form displays transaction ID and date fields",
-        "Total amount across all selected invoices is calculated and displayed",
-        "Payment submission creates entries for all selected invoices with the same transaction reference"
+        "The exported report includes a new 'Retailer Name' column",
+        "The retailer name is populated correctly for each payment entry row",
+        "The column is positioned appropriately within the existing report structure"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/payments/BatchPaymentForm.tsx",
+          "path": "frontend/src/utils/export/exportReportsToXlsx.ts",
           "operation": "modify",
-          "description": "Update the form to support Online Transfer (RTGS/NEFT/UPI) payment mode for batch payments. Add transaction ID input field and bank transfer date picker for online transfer mode. Calculate and display the total amount across all selected invoices. Ensure the form validates required fields (transaction ID and date) for online transfer mode. Update the submission handler to call the backend enterBatchPayment method with the correct payment mode and transaction details."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add or update the mutation hook for batch payment submission to properly handle multiple invoices with online transfer payment mode. Ensure the mutation calls the backend enterBatchPayment method with correct parameters including transaction ID and bank transfer date. Include proper error handling and cache invalidation for invoices and payments after successful submission."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single cheque payment mode, capturing bank name, cheque number, and cheque date",
-      "acceptanceCriteria": [
-        "User can select 'Cheque' payment mode for batch payment",
-        "Form displays bank name, cheque number, and cheque date fields",
-        "Total amount across all selected invoices is calculated and displayed",
-        "Payment submission creates entries for all selected invoices with the same cheque reference"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/payments/BatchPaymentForm.tsx",
-          "operation": "modify",
-          "description": "Ensure the form supports Cheque payment mode for batch payments. Add or verify bank name input field, cheque number input field, and cheque date picker for cheque mode. The total amount calculation should already be present from REQ-2 changes. Ensure the form validates required fields (bank name, cheque number, and date) for cheque mode. Update the submission handler to properly pass cheque details to the backend enterBatchPayment method."
+          "description": "Add 'Retailer Name' column to the report export. Insert the column header in an appropriate position (likely near 'Retailer Code') and populate it by mapping payment entries to their corresponding retailer names from the invoices data. Use the existing retailerCode-to-name lookup pattern that appears to be used for DSE/salesman name mapping."
         }
       ]
     }

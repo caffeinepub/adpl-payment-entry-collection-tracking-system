@@ -1,71 +1,45 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-19T05:39:55.972Z",
+  "generatedAt": "2026-02-19T08:22:33.989Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
+    "total": 2,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the invoice selector in BatchPaymentEntryPage to allow users to select multiple invoices from the same or different retailers for a single batch payment using RTGS or cheque payment mode",
+        "summary": "In the reports export functionality, replace the 'DSE name' column header with 'Salesman Name' to accurately reflect the data being displayed",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/payments/InvoiceSelector.tsx",
-          "frontend/src/pages/payments/BatchPaymentEntryPage.tsx"
+          "frontend/src/utils/export/exportReportsToXlsx.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/payments/InvoiceSelector.tsx",
-          "frontend/src/pages/payments/BatchPaymentEntryPage.tsx"
+          "frontend/src/utils/export/exportReportsToXlsx.ts"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single RTGS payment mode, capturing transaction ID and payment date",
+        "summary": "Add a 'Retailer Name' column to the final report export to display the retailer name for each payment entry",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/payments/BatchPaymentForm.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/utils/export/exportReportsToXlsx.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/utils/export/exportReportsToXlsx.ts"
         ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single cheque payment mode, capturing bank name, cheque number, and cheque date",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/components/payments/BatchPaymentForm.tsx"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Verify that the backend properly handles batch payment entries, updating invoice statuses and recording payment details for all invoices in the batch",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/payments/InvoiceSelector.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/payments/BatchPaymentEntryPage.tsx",
+    "frontend/src/utils/export/exportReportsToXlsx.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

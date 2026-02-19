@@ -36,14 +36,18 @@ export function exportReportsToXlsx(
 
   // Create a map of invoice numbers to salesman names for quick lookup
   const invoiceToSalesmanMap = new Map<string, string>();
+  // Create a map of retailer codes to retailer names for quick lookup
+  const retailerCodeToNameMap = new Map<string, string>();
+  
   if (allInvoices) {
     allInvoices.forEach((invoice) => {
       invoiceToSalesmanMap.set(invoice.invoiceNumber, invoice.salesmanName);
+      retailerCodeToNameMap.set(invoice.retailerCode, invoice.retailerName);
     });
   }
 
-  // Helper function to get DSE names for a payment entry
-  const getDSENames = (payment: PaymentEntry): string => {
+  // Helper function to get salesman names for a payment entry
+  const getSalesmanNames = (payment: PaymentEntry): string => {
     const salesmanNames = new Set<string>();
     payment.invoiceNumbers.forEach((invoiceNumber) => {
       const salesmanName = invoiceToSalesmanMap.get(invoiceNumber);
@@ -52,6 +56,11 @@ export function exportReportsToXlsx(
       }
     });
     return Array.from(salesmanNames).join('; ') || 'N/A';
+  };
+
+  // Helper function to get retailer name for a payment entry
+  const getRetailerName = (payment: PaymentEntry): string => {
+    return retailerCodeToNameMap.get(payment.retailerCode) || 'N/A';
   };
 
   // Create CSV content
@@ -66,7 +75,7 @@ export function exportReportsToXlsx(
   csvRows.push(`Pending Balance,${formatCurrency(reportsData.pendingBalance)}`);
   csvRows.push('');
   csvRows.push('Payment Details');
-  csvRows.push('Payment Date,Retailer Code,Invoice Number(s),DSE Name,Type,Mode,Amount,Bank Name,Cheque Number,Cheque Amount,Cheque Date,Transaction ID,RTGS Date,RTGS Amount,Entered By');
+  csvRows.push('Payment Date,Retailer Code,Retailer Name,Invoice Number(s),Salesman Name,Type,Mode,Amount,Bank Name,Cheque Number,Cheque Amount,Cheque Date,Transaction ID,RTGS Date,RTGS Amount,Entered By');
 
   reportsData.payments.forEach((payment) => {
     const effectiveDate = getEffectivePaymentDate(payment);
@@ -99,14 +108,16 @@ export function exportReportsToXlsx(
     // Join invoice numbers with semicolon for CSV
     const invoiceNumbers = payment.invoiceNumbers.join('; ');
 
-    // Get DSE names for this payment
-    const dseNames = getDSENames(payment);
+    // Get salesman names and retailer name for this payment
+    const salesmanNames = getSalesmanNames(payment);
+    const retailerName = getRetailerName(payment);
 
     const row = [
       formatDate(effectiveDate),
       payment.retailerCode,
+      retailerName,
       invoiceNumbers,
-      dseNames,
+      salesmanNames,
       getPaymentTypeLabel(payment.paymentType),
       getPaymentModeLabel(payment.paymentMode),
       formatCurrency(payment.paymentAmount),

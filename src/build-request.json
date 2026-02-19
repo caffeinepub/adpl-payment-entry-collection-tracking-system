@@ -1,91 +1,43 @@
 {
   "kind": "build_request",
-  "title": "Fix batch payment invoice selection functionality",
-  "priority": "high",
+  "title": "Replace DSE name with Salesman Name and add Retailer Name column in final report",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the invoice selector in BatchPaymentEntryPage to allow users to select multiple invoices from the same or different retailers for a single batch payment using RTGS or cheque payment mode",
+      "text": "In the reports export functionality, replace the 'DSE name' column header with 'Salesman Name' to accurately reflect the data being displayed",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "Not done changes as per request I am still not able to select batch payment I need to enter multiple invoice for single RTGS payment or cheque payment"
+          "msg-5"
         ]
       },
       "acceptanceCriteria": [
-        "User can navigate to batch payment entry page",
-        "User can search and select multiple unpaid or partially paid invoices",
-        "Selected invoices display with their details (retailer, invoice number, amount)",
-        "User can proceed to enter payment details for the selected batch"
+        "The exported CSV/XLSX report shows 'Salesman Name' instead of 'DSE name' in the column header",
+        "The salesman data in the column remains unchanged, only the header label is updated"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single RTGS payment mode, capturing transaction ID and payment date",
+      "text": "Add a 'Retailer Name' column to the final report export to display the retailer name for each payment entry",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "I need to enter multiple invoice for single RTGS payment"
+          "msg-5"
         ]
       },
       "acceptanceCriteria": [
-        "User can select 'Online Transfer' payment mode for batch payment",
-        "Form displays transaction ID and date fields",
-        "Total amount across all selected invoices is calculated and displayed",
-        "Payment submission creates entries for all selected invoices with the same transaction reference"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single cheque payment mode, capturing bank name, cheque number, and cheque date",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "I need to enter multiple invoice for single RTGS payment or cheque payment"
-        ]
-      },
-      "acceptanceCriteria": [
-        "User can select 'Cheque' payment mode for batch payment",
-        "Form displays bank name, cheque number, and cheque date fields",
-        "Total amount across all selected invoices is calculated and displayed",
-        "Payment submission creates entries for all selected invoices with the same cheque reference"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Verify that the backend properly handles batch payment entries, updating invoice statuses and recording payment details for all invoices in the batch",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-last"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend accepts payment entries with multiple invoice references",
-        "Invoice balances are updated correctly for each invoice in the batch",
-        "Payment history shows the batch payment for all affected invoices",
-        "Invoice status updates to 'Paid' when balance reaches zero"
+        "The exported report includes a new 'Retailer Name' column",
+        "The retailer name is populated correctly for each payment entry row",
+        "The column is positioned appropriately within the existing report structure"
       ]
     }
   ],
-  "constraints": [
-    "Must support both RTGS/online transfer and cheque payment modes for batch payments",
-    "Payment details (transaction ID or cheque info) must be consistent across all invoices in a batch",
-    "Do not modify authentication or role-based access control logic"
-  ],
+  "constraints": [],
   "nonGoals": [
-    "Adding new payment modes beyond existing RTGS and cheque options",
-    "Modifying the invoice upload or template generation functionality",
-    "Changes to user management or admin features"
+    "Changing the backend data structure or API",
+    "Modifying the report filtering or calculation logic",
+    "Changing any other column headers or data beyond what is specified"
   ],
   "imageRequirements": {
     "required": [],

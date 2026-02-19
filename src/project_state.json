@@ -1,55 +1,30 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Payment processing application requiring batch payment functionality",
+  "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [
-    "Batch payment functionality not working - users cannot select multiple invoices for single payment"
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-fix-the-invoice-selector-in-batchpaymententrypage-to-allow-users-to-select-multiple-invoices-from-the-same-or-different-retailers-for-a-single-batch-payment-using-rtgs-or-cheque-payment-mode",
-      "title": "Fix the invoice selector in BatchPaymentEntryPage to allow users to select multiple invoices from the same or different retailers for a single batch payment using RTGS or cheque payment mode",
+      "id": "feature-in-the-reports-export-functionality-replace-the-dse-name-column-header-with-salesman-name-to-accurately-reflect-the-data-being-displayed",
+      "title": "In the reports export functionality, replace the 'DSE name' column header with 'Salesman Name' to accurately reflect the data being displayed",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-batchpaymentform-accepts-and-processes-multiple-selected-invoices-with-a-single-rtgs-payment-mode-capturing-transaction-id-and-payment-date",
-      "title": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single RTGS payment mode, capturing transaction ID and payment date",
+      "id": "feature-add-a-retailer-name-column-to-the-final-report-export-to-display-the-retailer-name-for-each-payment-entry",
+      "title": "Add a 'Retailer Name' column to the final report export to display the retailer name for each payment entry",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Enable batch payment selection - allow multiple invoices to be paid with single RTGS or cheque payment",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single cheque payment mode, capturing bank name, cheque number, and cheque date",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Verify that the backend properly handles batch payment entries, updating invoice statuses and recording payment details for all invoices in the batch",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Fix batch payment invoice selection functionality",
+  "new_feature_requests": [],
+  "projectName": "Replace DSE name with Salesman Name and add Retailer Name column in final report",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
