@@ -1,36 +1,22 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Replace DSE name with Salesman Name and add Retailer Name column in final report",
+  "title": "Split multi-invoice payments into separate rows in Excel report",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace 'DSE name' column header with 'Salesman Name' in reports export",
+      "summary": "Split multi-invoice payment entries into individual rows in Excel export, duplicating payment details for each invoice",
       "acceptanceCriteria": [
-        "The exported CSV/XLSX report shows 'Salesman Name' instead of 'DSE name' in the column header",
-        "The salesman data in the column remains unchanged, only the header label is updated"
+        "When a payment entry has multiple invoices (e.g., 'ABMNG-25-I102812, ABMNG-25-I104507'), each invoice appears on its own row in the exported CSV/Excel file",
+        "Payment details (date, retailer, salesman, type, mode, amount, transaction ID, bank, cheque number) are duplicated across all rows for that payment",
+        "The highlighted row example (ABMNG_D0553 with invoices ABMNG-25-I102812, ABMNG-25-I104507) exports as two separate rows with identical payment details but different invoice numbers",
+        "The invoice number column shows exactly one invoice number per row instead of comma-separated values"
       ],
       "file_operations": [
         {
           "path": "frontend/src/utils/export/exportReportsToXlsx.ts",
           "operation": "modify",
-          "description": "Update the CSV header generation to replace 'DSE name' with 'Salesman Name' in the column definitions. Locate the header array that includes 'DSE name' and change it to 'Salesman Name' while preserving all other headers and the data mapping logic."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Add 'Retailer Name' column to the final report export",
-      "acceptanceCriteria": [
-        "The exported report includes a new 'Retailer Name' column",
-        "The retailer name is populated correctly for each payment entry row",
-        "The column is positioned appropriately within the existing report structure"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/utils/export/exportReportsToXlsx.ts",
-          "operation": "modify",
-          "description": "Add 'Retailer Name' column to the report export. Insert the column header in an appropriate position (likely near 'Retailer Code') and populate it by mapping payment entries to their corresponding retailer names from the invoices data. Use the existing retailerCode-to-name lookup pattern that appears to be used for DSE/salesman name mapping."
+          "description": "Modify the exportReportsToXlsx function to iterate through each invoice number in the payment.invoiceNumbers array and create a separate CSV row for each invoice. Duplicate all payment details (payment date, retailer code, retailer name, salesman, payment type, payment mode, transaction ID, bank name, cheque number, amount) across all rows, but show only one invoice number per row. Replace the current logic that joins invoice numbers with commas into a single cell with a loop that generates one row per invoice while preserving all other payment details. Maintain the existing column order and formatting for single-invoice payments."
         }
       ]
     }

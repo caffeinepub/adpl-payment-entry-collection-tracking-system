@@ -5,26 +5,24 @@
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
-  "existing_features": [
+  "existing_features": [],
+  "new_feature_requests": [
     {
-      "id": "feature-in-the-reports-export-functionality-replace-the-dse-name-column-header-with-salesman-name-to-accurately-reflect-the-data-being-displayed",
-      "title": "In the reports export functionality, replace the 'DSE name' column header with 'Salesman Name' to accurately reflect the data being displayed",
+      "id": "AR-1",
+      "summary": "Excel report: separate row per invoice with duplicated payment details",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Modify the Excel export logic to generate one row per invoice when a payment covers multiple invoices. Each row should duplicate the payment details (payment date, retailer code, retailer name, salesman, payment type, payment mode, transaction ID, bank name, cheque number, amount) but show only one invoice number per row.",
       "reqIds": [
         "REQ-1"
       ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-retailer-name-column-to-the-final-report-export-to-display-the-retailer-name-for-each-payment-entry",
-      "title": "Add a 'Retailer Name' column to the final report export to display the retailer name for each payment entry",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
+      "status": "pending"
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Replace DSE name with Salesman Name and add Retailer Name column in final report",
+  "projectName": "ADPL Payment Report",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -46,18 +46,6 @@ export function exportReportsToXlsx(
     });
   }
 
-  // Helper function to get salesman names for a payment entry
-  const getSalesmanNames = (payment: PaymentEntry): string => {
-    const salesmanNames = new Set<string>();
-    payment.invoiceNumbers.forEach((invoiceNumber) => {
-      const salesmanName = invoiceToSalesmanMap.get(invoiceNumber);
-      if (salesmanName) {
-        salesmanNames.add(salesmanName);
-      }
-    });
-    return Array.from(salesmanNames).join('; ') || 'N/A';
-  };
-
   // Helper function to get retailer name for a payment entry
   const getRetailerName = (payment: PaymentEntry): string => {
     return retailerCodeToNameMap.get(payment.retailerCode) || 'N/A';
@@ -75,8 +63,9 @@ export function exportReportsToXlsx(
   csvRows.push(`Pending Balance,${formatCurrency(reportsData.pendingBalance)}`);
   csvRows.push('');
   csvRows.push('Payment Details');
-  csvRows.push('Payment Date,Retailer Code,Retailer Name,Invoice Number(s),Salesman Name,Type,Mode,Amount,Bank Name,Cheque Number,Cheque Amount,Cheque Date,Transaction ID,RTGS Date,RTGS Amount,Entered By');
+  csvRows.push('Payment Date,Retailer Code,Retailer Name,Invoice Number,Salesman Name,Type,Mode,Amount,Bank Name,Cheque Number,Cheque Amount,Cheque Date,Transaction ID,RTGS Date,RTGS Amount,Entered By');
 
+  // Expand payments: create one CSV row per invoice
   reportsData.payments.forEach((payment) => {
     const effectiveDate = getEffectivePaymentDate(payment);
     
@@ -105,33 +94,35 @@ export function exportReportsToXlsx(
       ? formatCurrency(payment.paymentAmount).toString()
       : '';
 
-    // Join invoice numbers with semicolon for CSV
-    const invoiceNumbers = payment.invoiceNumbers.join('; ');
-
-    // Get salesman names and retailer name for this payment
-    const salesmanNames = getSalesmanNames(payment);
+    // Get retailer name for this payment
     const retailerName = getRetailerName(payment);
 
-    const row = [
-      formatDate(effectiveDate),
-      payment.retailerCode,
-      retailerName,
-      invoiceNumbers,
-      salesmanNames,
-      getPaymentTypeLabel(payment.paymentType),
-      getPaymentModeLabel(payment.paymentMode),
-      formatCurrency(payment.paymentAmount),
-      bankName,
-      chequeNumber,
-      chequeAmount,
-      chequeDate,
-      transactionId,
-      rtgsDate,
-      rtgsAmount,
-      payment.enteredBy.toString(),
-    ];
+    // Create a separate CSV row for each invoice in this payment
+    payment.invoiceNumbers.forEach((invoiceNumber) => {
+      // Get salesman name for this specific invoice
+      const salesmanName = invoiceToSalesmanMap.get(invoiceNumber) || 'N/A';
 
-    csvRows.push(row.join(','));
+      const row = [
+        formatDate(effectiveDate),
+        payment.retailerCode,
+        retailerName,
+        invoiceNumber,
+        salesmanName,
+        getPaymentTypeLabel(payment.paymentType),
+        getPaymentModeLabel(payment.paymentMode),
+        formatCurrency(payment.paymentAmount),
+        bankName,
+        chequeNumber,
+        chequeAmount,
+        chequeDate,
+        transactionId,
+        rtgsDate,
+        rtgsAmount,
+        payment.enteredBy.toString(),
+      ];
+
+      csvRows.push(row.join(','));
+    });
   });
 
   // Create CSV blob and download

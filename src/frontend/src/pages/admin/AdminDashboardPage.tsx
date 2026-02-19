@@ -1,12 +1,14 @@
 import { useGetReportsData } from '../../hooks/useQueries';
+import { useActor } from '../../hooks/useActor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingUp, AlertCircle, Clock } from 'lucide-react';
+import { DollarSign, TrendingUp, AlertCircle, Clock, RefreshCw } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
-  const { data: reportsData, isLoading } = useGetReportsData({
+  const { actor, isFetching: actorFetching } = useActor();
+  const { data: reportsData, isLoading, isFetching: queryFetching, error, refetch } = useGetReportsData({
     startDate: null,
     endDate: null,
     salesmanName: null,
@@ -53,12 +55,40 @@ export default function AdminDashboardPage() {
     },
   ];
 
-  if (isLoading) {
+  // Show loading state while actor is initializing or data is being fetched
+  // Only show loading if we don't have data yet and we're not in an error state
+  const isActuallyLoading = (actorFetching || isLoading || queryFetching) && !reportsData && !error;
+
+  if (isActuallyLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state with retry option
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-md">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Failed to Load Dashboard</h2>
+          <p className="text-muted-foreground mb-4">
+            {error instanceof Error ? error.message : 'An error occurred while loading the dashboard data.'}
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={() => refetch()} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+            <Button onClick={() => navigate({ to: '/invoices' })} variant="default">
+              Go to Invoices
+            </Button>
+          </div>
         </div>
       </div>
     );

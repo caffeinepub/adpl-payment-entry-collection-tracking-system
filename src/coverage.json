@@ -1,45 +1,30 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-19T08:22:33.989Z",
+  "generatedAt": "2026-02-19T09:15:44.064Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the reports export functionality, replace the 'DSE name' column header with 'Salesman Name' to accurately reflect the data being displayed",
-        "status": "implemented",
+        "summary": "Modify the Excel export logic to generate one row per invoice when a payment covers multiple invoices. Each row should duplicate the payment details (payment date, retailer code, retailer name, salesman, payment type, payment mode, transaction ID, bank name, cheque number, amount) but show only one invoice number per row.",
+        "status": "missing",
         "plannedFiles": [
           "frontend/src/utils/export/exportReportsToXlsx.ts"
         ],
-        "matchedFiles": [
-          "frontend/src/utils/export/exportReportsToXlsx.ts"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Add a 'Retailer Name' column to the final report export to display the retailer name for each payment entry",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/export/exportReportsToXlsx.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/export/exportReportsToXlsx.ts"
-        ]
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/utils/export/exportReportsToXlsx.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

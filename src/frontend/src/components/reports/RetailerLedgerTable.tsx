@@ -7,6 +7,20 @@ interface RetailerLedgerTableProps {
   payments: PaymentEntry[];
 }
 
+// Expanded row type where each invoice gets its own row
+interface ExpandedPaymentRow {
+  paymentId: bigint;
+  invoiceNumber: string;
+  retailerCode: string;
+  paymentAmount: bigint;
+  paymentType: PaymentType;
+  paymentMode: PaymentMode;
+  effectiveDate: bigint;
+  transactionId: string;
+  bankName: string;
+  chequeNumber: string;
+}
+
 export default function RetailerLedgerTable({ payments }: RetailerLedgerTableProps) {
   const formatCurrency = (amount: bigint) => {
     return new Intl.NumberFormat('en-IN', {
@@ -35,18 +49,51 @@ export default function RetailerLedgerTable({ payments }: RetailerLedgerTablePro
     return 'Unknown';
   };
 
-  const groupedByRetailer = payments.reduce((acc, payment) => {
-    if (!acc[payment.retailerCode]) {
-      acc[payment.retailerCode] = [];
+  // Expand payments: create one row per invoice
+  const expandedRows: ExpandedPaymentRow[] = [];
+  
+  payments.forEach((payment) => {
+    const effectiveDate = getEffectivePaymentDate(payment);
+    const transactionId = payment.paymentMode === PaymentMode.bankTransfer && payment.transactionId 
+      ? payment.transactionId 
+      : '';
+    const bankName = payment.paymentMode === PaymentMode.cheque && payment.chequeBankName 
+      ? payment.chequeBankName 
+      : '';
+    const chequeNumber = payment.paymentMode === PaymentMode.cheque && payment.chequeNumber 
+      ? payment.chequeNumber 
+      : '';
+
+    // Create a separate row for each invoice in this payment
+    payment.invoiceNumbers.forEach((invoiceNumber) => {
+      expandedRows.push({
+        paymentId: payment.id,
+        invoiceNumber,
+        retailerCode: payment.retailerCode,
+        paymentAmount: payment.paymentAmount,
+        paymentType: payment.paymentType,
+        paymentMode: payment.paymentMode,
+        effectiveDate,
+        transactionId,
+        bankName,
+        chequeNumber,
+      });
+    });
+  });
+
+  // Group expanded rows by retailer
+  const groupedByRetailer = expandedRows.reduce((acc, row) => {
+    if (!acc[row.retailerCode]) {
+      acc[row.retailerCode] = [];
     }
-    acc[payment.retailerCode].push(payment);
+    acc[row.retailerCode].push(row);
     return acc;
-  }, {} as Record<string, PaymentEntry[]>);
+  }, {} as Record<string, ExpandedPaymentRow[]>);
 
   return (
     <div className="space-y-6">
-      {Object.entries(groupedByRetailer).map(([retailerCode, retailerPayments]) => {
-        const totalAmount = retailerPayments.reduce((sum, p) => sum + Number(p.paymentAmount), 0);
+      {Object.entries(groupedByRetailer).map(([retailerCode, retailerRows]) => {
+        const totalAmount = retailerRows.reduce((sum, r) => sum + Number(r.paymentAmount), 0);
 
         return (
           <div key={retailerCode} className="space-y-2">
@@ -59,7 +106,7 @@ export default function RetailerLedgerTable({ payments }: RetailerLedgerTablePro
                 <TableHeader>
                   <TableRow>
                     <TableHead>Payment Date</TableHead>
-                    <TableHead>Invoice(s)</TableHead>
+                    <TableHead>Invoice</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Mode</TableHead>
                     <TableHead>Transaction ID</TableHead>
@@ -69,44 +116,24 @@ export default function RetailerLedgerTable({ payments }: RetailerLedgerTablePro
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {retailerPayments.map((payment) => {
-                    const effectiveDate = getEffectivePaymentDate(payment);
-                    const transactionId = payment.paymentMode === PaymentMode.bankTransfer && payment.transactionId 
-                      ? payment.transactionId 
-                      : '';
-                    const bankName = payment.paymentMode === PaymentMode.cheque && payment.chequeBankName 
-                      ? payment.chequeBankName 
-                      : '';
-                    const chequeNumber = payment.paymentMode === PaymentMode.cheque && payment.chequeNumber 
-                      ? payment.chequeNumber 
-                      : '';
-
-                    return (
-                      <TableRow key={Number(payment.id)}>
-                        <TableCell>{formatDate(effectiveDate)}</TableCell>
-                        <TableCell>
-                          {payment.invoiceNumbers.map((invNum, idx) => (
-                            <div key={invNum}>
-                              {invNum}
-                              {idx < payment.invoiceNumbers.length - 1 && ', '}
-                            </div>
-                          ))}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={payment.paymentType === PaymentType.invoicePayment ? 'default' : 'secondary'}>
-                            {getPaymentTypeLabel(payment.paymentType)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{getPaymentModeLabel(payment.paymentMode)}</TableCell>
-                        <TableCell className="text-muted-foreground">{transactionId || '—'}</TableCell>
-                        <TableCell className="text-muted-foreground">{bankName || '—'}</TableCell>
-                        <TableCell className="text-muted-foreground">{chequeNumber || '—'}</TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatCurrency(payment.paymentAmount)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {retailerRows.map((row, idx) => (
+                    <TableRow key={`${Number(row.paymentId)}-${row.invoiceNumber}-${idx}`}>
+                      <TableCell>{formatDate(row.effectiveDate)}</TableCell>
+                      <TableCell>{row.invoiceNumber}</TableCell>
+                      <TableCell>
+                        <Badge variant={row.paymentType === PaymentType.invoicePayment ? 'default' : 'secondary'}>
+                          {getPaymentTypeLabel(row.paymentType)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{getPaymentModeLabel(row.paymentMode)}</TableCell>
+                      <TableCell className="text-muted-foreground">{row.transactionId || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{row.bankName || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{row.chequeNumber || '—'}</TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(row.paymentAmount)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>

@@ -11,10 +11,12 @@ export function useGetAllInvoices() {
   return useQuery<Invoice[]>({
     queryKey: ['invoices'],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error('Actor not available');
       return actor.getAllInvoices();
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -24,10 +26,12 @@ export function useGetInvoice(invoiceNumber: string) {
   return useQuery<Invoice | null>({
     queryKey: ['invoice', invoiceNumber],
     queryFn: async () => {
-      if (!actor) return null;
+      if (!actor) throw new Error('Actor not available');
       return actor.getInvoice(invoiceNumber);
     },
     enabled: !!actor && !isFetching && !!invoiceNumber,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -37,10 +41,12 @@ export function useGetAllPayments() {
   return useQuery<PaymentEntry[]>({
     queryKey: ['payments'],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error('Actor not available');
       return actor.getAllPayments();
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -50,10 +56,12 @@ export function useGetPaymentHistory(retailerCode: string) {
   return useQuery<PaymentEntry[]>({
     queryKey: ['paymentHistory', retailerCode],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error('Actor not available');
       return actor.getPaymentHistory(retailerCode);
     },
     enabled: !!actor && !isFetching && !!retailerCode,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -295,7 +303,7 @@ export function useGetReportsData(filters: {
       filters.paymentMode,
     ],
     queryFn: async () => {
-      if (!actor) return null;
+      if (!actor) throw new Error('Actor not available');
       return actor.getReportsData(
         filters.startDate,
         filters.endDate,
@@ -305,6 +313,9 @@ export function useGetReportsData(filters: {
       );
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 }
 
@@ -319,7 +330,7 @@ export function useGetAllUserProfiles() {
   }>>({
     queryKey: ['allUserProfiles'],
     queryFn: async () => {
-      if (!actor) return [];
+      if (!actor) throw new Error('Actor not available');
       
       // Get all payments to extract unique principals
       const payments = await actor.getAllPayments();
@@ -355,6 +366,8 @@ export function useGetAllUserProfiles() {
       return Promise.all(userPromises);
     },
     enabled: !!actor && !isFetching,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
