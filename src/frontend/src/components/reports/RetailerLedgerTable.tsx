@@ -59,7 +59,7 @@ export default function RetailerLedgerTable({ payments }: RetailerLedgerTablePro
                 <TableHeader>
                   <TableRow>
                     <TableHead>Payment Date</TableHead>
-                    <TableHead>Invoice</TableHead>
+                    <TableHead>Invoice(s)</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Mode</TableHead>
                     <TableHead>Transaction ID</TableHead>
@@ -84,7 +84,14 @@ export default function RetailerLedgerTable({ payments }: RetailerLedgerTablePro
                     return (
                       <TableRow key={Number(payment.id)}>
                         <TableCell>{formatDate(effectiveDate)}</TableCell>
-                        <TableCell>{payment.invoiceNumber}</TableCell>
+                        <TableCell>
+                          {payment.invoiceNumbers.map((invNum, idx) => (
+                            <div key={invNum}>
+                              {invNum}
+                              {idx < payment.invoiceNumbers.length - 1 && ', '}
+                            </div>
+                          ))}
+                        </TableCell>
                         <TableCell>
                           <Badge variant={payment.paymentType === PaymentType.invoicePayment ? 'default' : 'secondary'}>
                             {getPaymentTypeLabel(payment.paymentType)}

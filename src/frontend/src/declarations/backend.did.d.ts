@@ -29,7 +29,7 @@ export interface PaymentEntry {
   'chequeNumber' : [] | [string],
   'retailerCode' : string,
   'bankTransferDate' : [] | [Time],
-  'invoiceNumber' : string,
+  'invoiceNumbers' : Array<string>,
   'createdTimestamp' : Time,
   'paymentMode' : PaymentMode,
   'paymentType' : PaymentType,
@@ -52,7 +52,7 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addPayment' : ActorMethod<
     [
-      string,
+      Array<string>,
       string,
       bigint,
       PaymentType,
@@ -80,6 +80,27 @@ export interface _SERVICE {
       [] | [Time],
     ],
     undefined
+  >,
+  'enterBatchPayment' : ActorMethod<
+    [
+      bigint,
+      Array<
+        [
+          bigint,
+          string,
+          Array<string>,
+          PaymentType,
+          PaymentMode,
+          [] | [string],
+          [] | [string],
+          [] | [string],
+          [] | [Time],
+          [] | [Time],
+        ]
+      >,
+      string,
+    ],
+    string
   >,
   'getAllInvoices' : ActorMethod<[], Array<Invoice>>,
   'getAllPayments' : ActorMethod<[], Array<PaymentEntry>>,

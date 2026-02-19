@@ -44,7 +44,7 @@ export const PaymentEntry = IDL.Record({
   'chequeNumber' : IDL.Opt(IDL.Text),
   'retailerCode' : IDL.Text,
   'bankTransferDate' : IDL.Opt(Time),
-  'invoiceNumber' : IDL.Text,
+  'invoiceNumbers' : IDL.Vec(IDL.Text),
   'createdTimestamp' : Time,
   'paymentMode' : PaymentMode,
   'paymentType' : PaymentType,
@@ -59,7 +59,7 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addPayment' : IDL.Func(
       [
-        IDL.Text,
+        IDL.Vec(IDL.Text),
         IDL.Text,
         IDL.Nat,
         PaymentType,
@@ -88,6 +88,28 @@ export const idlService = IDL.Service({
         IDL.Opt(Time),
       ],
       [],
+      [],
+    ),
+  'enterBatchPayment' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Vec(
+          IDL.Tuple(
+            IDL.Nat,
+            IDL.Text,
+            IDL.Vec(IDL.Text),
+            PaymentType,
+            PaymentMode,
+            IDL.Opt(IDL.Text),
+            IDL.Opt(IDL.Text),
+            IDL.Opt(IDL.Text),
+            IDL.Opt(Time),
+            IDL.Opt(Time),
+          )
+        ),
+        IDL.Text,
+      ],
+      [IDL.Text],
       [],
     ),
   'getAllInvoices' : IDL.Func([], [IDL.Vec(Invoice)], ['query']),
@@ -167,7 +189,7 @@ export const idlFactory = ({ IDL }) => {
     'chequeNumber' : IDL.Opt(IDL.Text),
     'retailerCode' : IDL.Text,
     'bankTransferDate' : IDL.Opt(Time),
-    'invoiceNumber' : IDL.Text,
+    'invoiceNumbers' : IDL.Vec(IDL.Text),
     'createdTimestamp' : Time,
     'paymentMode' : PaymentMode,
     'paymentType' : PaymentType,
@@ -182,7 +204,7 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addPayment' : IDL.Func(
         [
-          IDL.Text,
+          IDL.Vec(IDL.Text),
           IDL.Text,
           IDL.Nat,
           PaymentType,
@@ -211,6 +233,28 @@ export const idlFactory = ({ IDL }) => {
           IDL.Opt(Time),
         ],
         [],
+        [],
+      ),
+    'enterBatchPayment' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Vec(
+            IDL.Tuple(
+              IDL.Nat,
+              IDL.Text,
+              IDL.Vec(IDL.Text),
+              PaymentType,
+              PaymentMode,
+              IDL.Opt(IDL.Text),
+              IDL.Opt(IDL.Text),
+              IDL.Opt(IDL.Text),
+              IDL.Opt(Time),
+              IDL.Opt(Time),
+            )
+          ),
+          IDL.Text,
+        ],
+        [IDL.Text],
         [],
       ),
     'getAllInvoices' : IDL.Func([], [IDL.Vec(Invoice)], ['query']),

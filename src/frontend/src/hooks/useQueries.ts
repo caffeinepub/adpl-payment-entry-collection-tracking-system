@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Invoice, PaymentEntry, PaymentMode, PaymentType, UserProfile } from '../backend';
-import { UserRole } from '../backend';
+import type { Invoice, PaymentEntry, UserProfile } from '../backend';
+import { PaymentMode, PaymentType, UserRole } from '../backend';
 import type { Principal } from '@icp-sdk/core/principal';
+import { htmlDateToBackendTime } from '../utils/payments/paymentDates';
 
 export function useGetAllInvoices() {
   const { actor, isFetching } = useActor();
@@ -121,7 +122,7 @@ export function useAddPayment() {
     }) => {
       if (!actor) throw new Error('Actor not available');
       return actor.addPayment(
-        invoiceNumber,
+        [invoiceNumber],
         retailerCode,
         paymentAmount,
         paymentType,
@@ -137,6 +138,90 @@ export function useAddPayment() {
       queryClient.invalidateQueries({ queryKey: ['invoice', variables.invoiceNumber] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       queryClient.invalidateQueries({ queryKey: ['paymentHistory', variables.retailerCode] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['reportsData'] });
+    },
+  });
+}
+
+export function useAddBatchPayment() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      selectedInvoices,
+      totalPaymentAmount,
+      paymentMode,
+      transactionId,
+      chequeBankName,
+      chequeNumber,
+      paymentDate,
+    }: {
+      selectedInvoices: Invoice[];
+      totalPaymentAmount: bigint;
+      paymentMode: 'cheque' | 'online';
+      transactionId?: string;
+      chequeBankName?: string;
+      chequeNumber?: string;
+      paymentDate: string;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+
+      // Convert date to backend time
+      const dateInNanos = htmlDateToBackendTime(paymentDate);
+      if (!dateInNanos) {
+        throw new Error('Invalid payment date');
+      }
+
+      const backendPaymentMode = paymentMode === 'cheque' ? PaymentMode.cheque : PaymentMode.bankTransfer;
+      
+      // Group invoices by retailer
+      const invoicesByRetailer = selectedInvoices.reduce((acc, inv) => {
+        if (!acc[inv.retailerCode]) {
+          acc[inv.retailerCode] = [];
+        }
+        acc[inv.retailerCode].push(inv);
+        return acc;
+      }, {} as Record<string, Invoice[]>);
+
+      // Calculate payment distribution per retailer
+      const totalOutstanding = selectedInvoices.reduce((sum, inv) => sum + Number(inv.balanceAmount), 0);
+      const paymentEntries: Array<[bigint, string, Array<string>, PaymentType, PaymentMode, string | null, string | null, string | null, bigint | null, bigint | null]> = [];
+
+      for (const [retailerCode, invoices] of Object.entries(invoicesByRetailer)) {
+        const retailerOutstanding = invoices.reduce((sum, inv) => sum + Number(inv.balanceAmount), 0);
+        const retailerPayment = Math.round((retailerOutstanding / totalOutstanding) * Number(totalPaymentAmount));
+        
+        paymentEntries.push([
+          BigInt(retailerPayment),
+          retailerCode,
+          invoices.map(inv => inv.invoiceNumber),
+          PaymentType.invoicePayment,
+          backendPaymentMode,
+          paymentMode === 'online' ? (transactionId || null) : null,
+          paymentMode === 'cheque' ? (chequeBankName || null) : null,
+          paymentMode === 'cheque' ? (chequeNumber || null) : null,
+          paymentMode === 'cheque' ? dateInNanos : null,
+          paymentMode === 'online' ? dateInNanos : null,
+        ]);
+      }
+
+      // Use the first retailer code as the main retailer code for the batch
+      const mainRetailerCode = Object.keys(invoicesByRetailer)[0];
+
+      return actor.enterBatchPayment(
+        totalPaymentAmount,
+        paymentEntries,
+        mainRetailerCode
+      );
+    },
+    onSuccess: (_, variables) => {
+      variables.selectedInvoices.forEach((invoice) => {
+        queryClient.invalidateQueries({ queryKey: ['invoice', invoice.invoiceNumber] });
+        queryClient.invalidateQueries({ queryKey: ['paymentHistory', invoice.retailerCode] });
+      });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['reportsData'] });
     },
@@ -244,21 +329,19 @@ export function useGetAllUserProfiles() {
         principalSet.add(payment.enteredBy.toString());
       });
 
-      // Fetch profile and role for each principal
+      // Fetch profile for each principal
       const userPromises = Array.from(principalSet).map(async (principalStr) => {
         const principal = payments.find(p => p.enteredBy.toString() === principalStr)!.enteredBy;
         try {
-          const [profile, role] = await Promise.all([
-            actor.getUserProfile(principal),
-            actor.getCallerUserRole(), // Note: This gets caller's role, we need the target user's role
-          ]);
+          const profile = await actor.getUserProfile(principal);
           
-          // Since we can't get other users' roles directly, we'll infer from their profile
-          // or use a default. The backend should ideally provide a method to get any user's role.
+          // Infer role from profile or default to user
+          const effectiveRole = (profile?.role === 'admin' ? UserRole.admin : UserRole.user) as UserRole;
+          
           return {
             principal,
             profile,
-            effectiveRole: (profile?.role === 'admin' ? UserRole.admin : UserRole.user) as UserRole,
+            effectiveRole,
           };
         } catch {
           return {

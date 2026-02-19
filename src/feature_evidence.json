@@ -2,13 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-persist-mode-specific-payment-dates-in-the-backend-by-extending-the-paymententry-model-to-include-optional-chequedate-and-banktransferdate-fields-and-wire-these-through-addpayment-and-editpayment-so-the-frontend-can-store-the-entered-dates-for-cheque-and-neft-rtgs-upi-payments",
-      "featureTitle": "Persist mode-specific payment dates in the backend by extending the PaymentEntry model to include optional chequeDate and bankTransferDate fields, and wire these through addPayment and editPayment so the frontend can store the entered dates for Cheque and NEFT/RTGS/UPI payments.",
+      "featureId": "feature-fix-the-invoice-selector-in-batchpaymententrypage-to-allow-users-to-select-multiple-invoices-from-the-same-or-different-retailers-for-a-single-batch-payment-using-rtgs-or-cheque-payment-mode",
+      "featureTitle": "Fix the invoice selector in BatchPaymentEntryPage to allow users to select multiple invoices from the same or different retailers for a single batch payment using RTGS or cheque payment mode",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/payments/EditPaymentEntryPage.tsx",
-        "frontend/src/pages/payments/PaymentEntryPage.tsx",
-        "frontend/src/utils/payments/paymentDates.ts"
+        "frontend/src/components/payments/InvoiceSelector.tsx",
+        "frontend/src/pages/payments/BatchPaymentEntryPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -24,11 +22,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-on-screen-reports-ledger-table-to-display-a-single-payment-date-value-that-is-conditional-by-payment-mode-show-banktransferdate-for-neft-rtgs-upi-payments-show-chequedate-for-cheque-payments-otherwise-fall-back-to-the-createdtimestamp-date",
-      "featureTitle": "Update the on-screen Reports ledger table to display a single \"Payment Date\" value that is conditional by payment mode: show bankTransferDate for NEFT/RTGS/UPI payments, show chequeDate for Cheque payments, otherwise fall back to the createdTimestamp date.",
+      "featureId": "feature-ensure-the-batchpaymentform-accepts-and-processes-multiple-selected-invoices-with-a-single-rtgs-payment-mode-capturing-transaction-id-and-payment-date",
+      "featureTitle": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single RTGS payment mode, capturing transaction ID and payment date",
       "files": [
-        "frontend/src/components/reports/RetailerLedgerTable.tsx",
-        "frontend/src/utils/payments/paymentDates.ts"
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -40,26 +37,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-exported-csv-report-to-include-a-payment-date-column-that-is-conditional-by-payment-mode-banktransferdate-for-neft-rtgs-upi-chequedate-for-cheque-otherwise-createdtimestamp-keep-other-existing-export-columns-unchanged",
-      "featureTitle": "Update the exported CSV report to include a \"Payment Date\" column that is conditional by payment mode: bankTransferDate for NEFT/RTGS/UPI, chequeDate for Cheque, otherwise createdTimestamp; keep other existing export columns unchanged.",
-      "files": [
-        "frontend/src/utils/export/exportReportsToXlsx.ts",
-        "frontend/src/utils/payments/paymentDates.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
       ],
       "confidence": "high"
     }

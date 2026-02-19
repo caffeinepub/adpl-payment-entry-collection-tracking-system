@@ -1,105 +1,94 @@
 {
   "kind": "build_request",
-  "title": "Show mode-specific dates (RTGS date vs Cheque date) in Reports",
-  "priority": "normal",
+  "title": "Fix batch payment invoice selection functionality",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Persist mode-specific payment dates in the backend by extending the PaymentEntry model to include optional chequeDate and bankTransferDate fields, and wire these through addPayment and editPayment so the frontend can store the entered dates for Cheque and NEFT/RTGS/UPI payments.",
-      "target": "both",
+      "text": "Fix the invoice selector in BatchPaymentEntryPage to allow users to select multiple invoices from the same or different retailers for a single batch payment using RTGS or cheque payment mode",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-last"
         ],
         "quotes": [
-          "In Report column if it's RTGS payment I need RTGS Date and if it's Cheque payment I need cheque date..is this possible"
+          "Not done changes as per request I am still not able to select batch payment I need to enter multiple invoice for single RTGS payment or cheque payment"
         ]
       },
       "acceptanceCriteria": [
-        "Backend PaymentEntry includes optional fields for chequeDate and bankTransferDate (both nullable/optional).",
-        "backend/main.mo addPayment accepts and stores chequeDate and bankTransferDate when applicable.",
-        "backend/main.mo editPayment accepts and updates chequeDate and bankTransferDate when applicable.",
-        "Payment entry UI (PaymentEntryPage) sends chequeDate for cheque lines and transferDate for online lines to the backend.",
-        "Edit payment UI (EditPaymentEntryPage) allows admins to view/update the mode-specific date field for the selected mode and sends it to the backend.",
-        "Existing payment entries that predate this change continue to work with missing (null) chequeDate/bankTransferDate values."
+        "User can navigate to batch payment entry page",
+        "User can search and select multiple unpaid or partially paid invoices",
+        "Selected invoices display with their details (retailer, invoice number, amount)",
+        "User can proceed to enter payment details for the selected batch"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Update the on-screen Reports ledger table to display a single \"Payment Date\" value that is conditional by payment mode: show bankTransferDate for NEFT/RTGS/UPI payments, show chequeDate for Cheque payments, otherwise fall back to the createdTimestamp date.",
+      "text": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single RTGS payment mode, capturing transaction ID and payment date",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-last"
         ],
         "quotes": [
-          "In Report column if it's RTGS payment I need RTGS Date and if it's Cheque payment I need cheque date..is this possible"
+          "I need to enter multiple invoice for single RTGS payment"
         ]
       },
       "acceptanceCriteria": [
-        "RetailerLedgerTable shows a Payment Date column/value derived as: bankTransferDate (if mode=bankTransfer and present) else chequeDate (if mode=cheque and present) else createdTimestamp.",
-        "When the relevant mode-specific date is not present (older records), the UI falls back to createdTimestamp without errors.",
-        "Displayed date formatting remains consistent with existing report date formatting (en-IN locale)."
+        "User can select 'Online Transfer' payment mode for batch payment",
+        "Form displays transaction ID and date fields",
+        "Total amount across all selected invoices is calculated and displayed",
+        "Payment submission creates entries for all selected invoices with the same transaction reference"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update the exported CSV report to include a \"Payment Date\" column that is conditional by payment mode: bankTransferDate for NEFT/RTGS/UPI, chequeDate for Cheque, otherwise createdTimestamp; keep other existing export columns unchanged.",
+      "text": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single cheque payment mode, capturing bank name, cheque number, and cheque date",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-last"
         ],
         "quotes": [
-          "In Report column if it's RTGS payment I need RTGS Date and if it's Cheque payment I need cheque date..is this possible"
+          "I need to enter multiple invoice for single RTGS payment or cheque payment"
         ]
       },
       "acceptanceCriteria": [
-        "exportReportsToXlsx adds/updates a CSV column named \"Payment Date\" populated as: bankTransferDate (bank transfer) else chequeDate (cheque) else createdTimestamp.",
-        "Export succeeds without runtime errors when mode-specific dates are null/missing.",
-        "CSV values for Payment Date match the on-screen semantics for the same payment rows."
+        "User can select 'Cheque' payment mode for batch payment",
+        "Form displays bank name, cheque number, and cheque date fields",
+        "Total amount across all selected invoices is calculated and displayed",
+        "Payment submission creates entries for all selected invoices with the same cheque reference"
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Add a conditional migration for existing stable data so previously stored PaymentEntry records are upgraded with null chequeDate and null bankTransferDate fields, without changing any existing payment amounts or invoice balances.",
+      "text": "Verify that the backend properly handles batch payment entries, updating invoice statuses and recording payment details for all invoices in the batch",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "In Report column if it's RTGS payment I need RTGS Date and if it's Cheque payment I need cheque date..is this possible"
+          "msg-last"
         ]
       },
       "acceptanceCriteria": [
-        "On canister upgrade, existing stored payments are preserved and new date fields default to null.",
-        "After upgrade, getAllPayments/getReportsData continue to return all existing payments successfully.",
-        "No invoice balances or statuses are modified by the migration."
+        "Backend accepts payment entries with multiple invoice references",
+        "Invoice balances are updated correctly for each invoice in the batch",
+        "Payment history shows the batch payment for all affected invoices",
+        "Invoice status updates to 'Paid' when balance reaches zero"
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Do not edit files under frontend/src/components/ui or any frontend immutablePaths listed in SYSTEM_CONTEXT; compose existing UI components instead."
+    "Must support both RTGS/online transfer and cheque payment modes for batch payments",
+    "Payment details (transaction ID or cheque info) must be consistent across all invoices in a batch",
+    "Do not modify authentication or role-based access control logic"
   ],
   "nonGoals": [
-    "Adding new payment modes or changing the meaning of PaymentType (invoice vs excess).",
-    "Changing report filtering logic (date range, salesman, type, mode) beyond using the new mode-specific date for display/export.",
-    "Implementing third-party integrations or external databases."
+    "Adding new payment modes beyond existing RTGS and cheque options",
+    "Modifying the invoice upload or template generation functionality",
+    "Changes to user management or admin features"
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

@@ -60,9 +60,27 @@ export default function PaymentEntryPage() {
           const chequeBankName = line.mode === 'cheque' ? line.bankName?.trim() || null : null;
           const chequeNumber = line.mode === 'cheque' ? line.chequeNumber?.trim() || null : null;
           
-          // Extract mode-specific date fields
-          const chequeDate = line.mode === 'cheque' ? htmlDateToBackendTime(line.chequeDate || '') : null;
-          const bankTransferDate = line.mode === 'online' ? htmlDateToBackendTime(line.transferDate || '') : null;
+          // Extract and validate mode-specific date fields
+          let chequeDate: bigint | null = null;
+          let bankTransferDate: bigint | null = null;
+
+          if (line.mode === 'cheque' && line.chequeDate) {
+            chequeDate = htmlDateToBackendTime(line.chequeDate);
+            if (chequeDate === null) {
+              toast.error('Invalid cheque date format. Please select a valid date.');
+              setSubmitting(false);
+              return;
+            }
+          }
+
+          if (line.mode === 'online' && line.transferDate) {
+            bankTransferDate = htmlDateToBackendTime(line.transferDate);
+            if (bankTransferDate === null) {
+              toast.error('Invalid transfer date format. Please select a valid date.');
+              setSubmitting(false);
+              return;
+            }
+          }
 
           await addPaymentMutation.mutateAsync({
             invoiceNumber: invoice.invoiceNumber,
@@ -183,66 +201,61 @@ export default function PaymentEntryPage() {
             </select>
           </div>
 
-          <PaymentLinesEditor
-            paymentLines={paymentLines}
-            onChange={setPaymentLines}
-          />
+          <PaymentLinesEditor paymentLines={paymentLines} onChange={setPaymentLines} />
 
           <div className="border-t pt-4 space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Total Entered:</span>
+              <span className="text-muted-foreground">Total Payment:</span>
               <span className="font-medium">{formatCurrency(totals.total)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Balance Amount:</span>
+              <span className="text-muted-foreground">Invoice Balance:</span>
               <span className="font-medium">{formatCurrency(invoice.balanceAmount)}</span>
             </div>
-            <div className="flex justify-between text-sm font-medium">
-              <span>Status:</span>
-              <span className={
-                status === 'Fully Paid' ? 'text-green-600' :
-                status === 'Partially Paid' ? 'text-orange-600' :
-                'text-blue-600'
-              }>
-                {status}
-              </span>
-            </div>
-            {totals.excess > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Excess Amount:</span>
-                <span className="font-medium text-blue-600">{formatCurrency(totals.excess)}</span>
-              </div>
-            )}
             {totals.remaining > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Remaining:</span>
                 <span className="font-medium text-orange-600">{formatCurrency(totals.remaining)}</span>
               </div>
             )}
+            {totals.excess > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Excess:</span>
+                <span className="font-medium text-green-600">{formatCurrency(totals.excess)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-semibold pt-2 border-t">
+              <span>Status:</span>
+              <span className={
+                status === 'Fully Paid' ? 'text-green-600' :
+                status === 'Excess Payment' ? 'text-blue-600' :
+                'text-orange-600'
+              }>
+                {status}
+              </span>
+            </div>
           </div>
 
-          {status === 'Excess Payment' && (
-            <Alert>
+          {validationErrors.length > 0 && (
+            <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Entered amount exceeds balance. Excess will be recorded.
-              </AlertDescription>
+              <AlertDescription>{validationErrors[0]}</AlertDescription>
             </Alert>
           )}
 
           <div className="flex gap-3">
             <Button
               onClick={handleSubmit}
-              disabled={submitting || validationErrors.length > 0 || totals.total === BigInt(0)}
+              disabled={submitting || validationErrors.length > 0}
               className="flex-1"
             >
               {submitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Submitting...
+                  Recording...
                 </>
               ) : (
-                'Submit Payment'
+                'Record Payment'
               )}
             </Button>
             <Button variant="outline" onClick={() => navigate({ to: '/invoices' })}>

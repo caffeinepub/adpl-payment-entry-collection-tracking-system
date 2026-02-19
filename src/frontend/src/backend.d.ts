@@ -14,7 +14,7 @@ export interface PaymentEntry {
     chequeNumber?: string;
     retailerCode: string;
     bankTransferDate?: Time;
-    invoiceNumber: string;
+    invoiceNumbers: Array<string>;
     createdTimestamp: Time;
     paymentMode: PaymentMode;
     paymentType: PaymentType;
@@ -57,10 +57,11 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    addPayment(invoiceNumber: string, retailerCode: string, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode, transactionId: string | null, chequeBankName: string | null, chequeNumber: string | null, chequeDate: Time | null, bankTransferDate: Time | null): Promise<string>;
+    addPayment(invoiceNumbers: Array<string>, retailerCode: string, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode, transactionId: string | null, chequeBankName: string | null, chequeNumber: string | null, chequeDate: Time | null, bankTransferDate: Time | null): Promise<string>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     clearAllData(): Promise<void>;
     editPayment(paymentId: bigint, paymentAmount: bigint, paymentType: PaymentType, paymentMode: PaymentMode, transactionId: string | null, chequeBankName: string | null, chequeNumber: string | null, chequeDate: Time | null, bankTransferDate: Time | null): Promise<void>;
+    enterBatchPayment(batchPaymentAmount: bigint, paymentEntries: Array<[bigint, string, Array<string>, PaymentType, PaymentMode, string | null, string | null, string | null, Time | null, Time | null]>, retailerCode: string): Promise<string>;
     getAllInvoices(): Promise<Array<Invoice>>;
     getAllPayments(): Promise<Array<PaymentEntry>>;
     getCallerUserProfile(): Promise<UserProfile | null>;

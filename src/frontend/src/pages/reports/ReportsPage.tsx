@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGetReportsData } from '../../hooks/useQueries';
+import { useGetReportsData, useGetAllInvoices } from '../../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ReportsFilters from '../../components/reports/ReportsFilters';
@@ -25,6 +25,7 @@ export default function ReportsPage() {
   });
 
   const { data: reportsData, isLoading } = useGetReportsData(filters);
+  const { data: allInvoices } = useGetAllInvoices();
 
   const handleExport = () => {
     if (!reportsData) {
@@ -33,7 +34,7 @@ export default function ReportsPage() {
     }
 
     try {
-      exportReportsToXlsx(reportsData, filters);
+      exportReportsToXlsx(reportsData, filters, allInvoices);
       toast.success('Report exported successfully as CSV');
     } catch (error: any) {
       toast.error(error.message || 'Failed to export report');

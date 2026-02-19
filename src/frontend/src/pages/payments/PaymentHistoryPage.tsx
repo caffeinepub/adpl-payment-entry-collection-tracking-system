@@ -1,18 +1,25 @@
 import { useParams, useNavigate } from '@tanstack/react-router';
-import { useGetPaymentHistory } from '../../hooks/useQueries';
+import { useGetPaymentHistory, useGetAllInvoices } from '../../hooks/useQueries';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit } from 'lucide-react';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ArrowLeft, Edit, Layers } from 'lucide-react';
 import { PaymentMode, PaymentType } from '../../backend';
+import { getEffectivePaymentDate } from '../../utils/payments/paymentDates';
 
 export default function PaymentHistoryPage() {
   const { retailerCode } = useParams({ from: '/payment-history/$retailerCode' });
   const navigate = useNavigate();
-  const { data: payments = [], isLoading } = useGetPaymentHistory(retailerCode);
-  const { isAdmin } = useCurrentUser();
+  const { data: payments, isLoading } = useGetPaymentHistory(retailerCode);
+  const { data: allInvoices } = useGetAllInvoices();
+  const { userRole } = useCurrentUser();
+
+  const isAdmin = userRole === 'admin';
+
+  const retailerInvoices = allInvoices?.filter((inv) => inv.retailerCode === retailerCode) || [];
+  const retailerName = retailerInvoices[0]?.retailerName || retailerCode;
 
   const formatCurrency = (amount: bigint) => {
     return new Intl.NumberFormat('en-IN', {
@@ -23,23 +30,38 @@ export default function PaymentHistoryPage() {
   };
 
   const formatDate = (timestamp: bigint) => {
-    return new Date(Number(timestamp) / 1000000).toLocaleString('en-IN', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
+    const date = new Date(Number(timestamp) / 1_000_000);
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
   const getPaymentModeLabel = (mode: PaymentMode) => {
-    if (mode === PaymentMode.cash) return 'Cash';
-    if (mode === PaymentMode.cheque) return 'Cheque';
-    if (mode === PaymentMode.bankTransfer) return 'NEFT/RTGS/UPI';
-    return 'Unknown';
+    switch (mode) {
+      case PaymentMode.cash:
+        return 'Cash';
+      case PaymentMode.cheque:
+        return 'Cheque';
+      case PaymentMode.bankTransfer:
+        return 'RTGS/NEFT/UPI';
+      default:
+        return 'Unknown';
+    }
   };
 
   const getPaymentTypeLabel = (type: PaymentType) => {
-    if (type === PaymentType.invoicePayment) return 'Invoice Payment';
-    if (type === PaymentType.excessPayment) return 'Excess Payment';
-    return 'Unknown';
+    switch (type) {
+      case PaymentType.invoicePayment:
+        return 'Invoice Payment';
+      case PaymentType.excessPayment:
+        return 'Excess Payment';
+      default:
+        return 'Unknown';
+    }
   };
 
   if (isLoading) {
@@ -54,72 +76,93 @@ export default function PaymentHistoryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate({ to: '/invoices' })}>
-          <ArrowLeft className="h-5 w-5" />
+    <div className="container mx-auto py-6 px-4 max-w-7xl">
+      <div className="mb-6">
+        <Button variant="ghost" onClick={() => navigate({ to: '/invoices' })}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Invoices
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Payment History</h1>
-          <p className="text-muted-foreground mt-1">Retailer Code: {retailerCode}</p>
-        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Payment Records ({payments.length})</CardTitle>
+          <CardTitle>Payment History</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Retailer: {retailerName} ({retailerCode})
+          </p>
         </CardHeader>
         <CardContent>
-          {payments.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No payment records found</p>
-            </div>
+          {!payments || payments.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No payment history found for this retailer</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date & Time</TableHead>
-                    <TableHead>Invoice</TableHead>
+                    <TableHead>Invoice(s)</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Mode</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Entered By</TableHead>
+                    <TableHead>Reference</TableHead>
                     {isAdmin && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={Number(payment.id)}>
-                      <TableCell className="whitespace-nowrap">
-                        {formatDate(payment.createdTimestamp)}
-                      </TableCell>
-                      <TableCell>{payment.invoiceNumber}</TableCell>
-                      <TableCell>
-                        <Badge variant={payment.paymentType === PaymentType.invoicePayment ? 'default' : 'secondary'}>
-                          {getPaymentTypeLabel(payment.paymentType)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{getPaymentModeLabel(payment.paymentMode)}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(payment.paymentAmount)}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {payment.enteredBy.toString().slice(0, 8)}...
-                      </TableCell>
-                      {isAdmin && (
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate({ to: `/edit-payment/${payment.id}` })}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                  {payments.map((payment) => {
+                    const isBatchPayment = payment.invoiceNumbers.length > 1;
+                    const effectiveDate = getEffectivePaymentDate(payment);
+                    
+                    return (
+                      <TableRow key={payment.id.toString()}>
+                        <TableCell className="text-sm">{formatDate(effectiveDate)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {isBatchPayment && (
+                              <Badge variant="secondary" className="text-xs">
+                                <Layers className="h-3 w-3 mr-1" />
+                                Batch
+                              </Badge>
+                            )}
+                            <div className="text-sm">
+                              {payment.invoiceNumbers.map((invNum, idx) => (
+                                <div key={invNum}>
+                                  {invNum}
+                                  {idx < payment.invoiceNumbers.length - 1 && ', '}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
+                        <TableCell>
+                          <Badge variant={payment.paymentType === PaymentType.excessPayment ? 'secondary' : 'default'}>
+                            {getPaymentTypeLabel(payment.paymentType)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{getPaymentModeLabel(payment.paymentMode)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(payment.paymentAmount)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {payment.paymentMode === PaymentMode.cheque && payment.chequeNumber && (
+                            <div>Cheque: {payment.chequeNumber}</div>
+                          )}
+                          {payment.paymentMode === PaymentMode.bankTransfer && payment.transactionId && (
+                            <div>Txn: {payment.transactionId}</div>
+                          )}
+                        </TableCell>
+                        {isAdmin && (
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate({ to: `/edit-payment/${payment.id}` })}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

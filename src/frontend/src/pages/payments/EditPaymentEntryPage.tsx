@@ -61,6 +61,12 @@ export default function EditPaymentEntryPage() {
         toast.error('Transfer date is required for bank transfer');
         return;
       }
+      // Validate date conversion
+      const convertedDate = htmlDateToBackendTime(transferDate);
+      if (convertedDate === null) {
+        toast.error('Invalid transfer date format. Please select a valid date.');
+        return;
+      }
     }
 
     if (paymentMode === PaymentMode.cheque) {
@@ -74,6 +80,12 @@ export default function EditPaymentEntryPage() {
       }
       if (!chequeDate.trim()) {
         toast.error('Cheque date is required for cheque payment');
+        return;
+      }
+      // Validate date conversion
+      const convertedDate = htmlDateToBackendTime(chequeDate);
+      if (convertedDate === null) {
+        toast.error('Invalid cheque date format. Please select a valid date.');
         return;
       }
     }
@@ -139,8 +151,15 @@ export default function EditPaymentEntryPage() {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 mb-6">
             <div>
-              <Label className="text-muted-foreground">Invoice Number</Label>
-              <p className="font-medium">{payment.invoiceNumber}</p>
+              <Label className="text-muted-foreground">Invoice Number(s)</Label>
+              <p className="font-medium">
+                {payment.invoiceNumbers.map((invNum, idx) => (
+                  <span key={invNum}>
+                    {invNum}
+                    {idx < payment.invoiceNumbers.length - 1 && ', '}
+                  </span>
+                ))}
+              </p>
             </div>
             <div>
               <Label className="text-muted-foreground">Retailer Code</Label>

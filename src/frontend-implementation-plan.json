@@ -1,81 +1,66 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Mode-specific payment dates in reports (UI + CSV export)",
+  "title": "Fix batch payment invoice selection functionality",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Send mode-specific payment dates (chequeDate / bankTransferDate) from Payment Entry and Edit Payment screens via existing add/edit payment mutations.",
+      "summary": "Fix the invoice selector in BatchPaymentEntryPage to allow users to select multiple invoices from the same or different retailers for a single batch payment using RTGS or cheque payment mode",
       "acceptanceCriteria": [
-        "Backend PaymentEntry includes optional fields for chequeDate and bankTransferDate (both nullable/optional).",
-        "backend/main.mo addPayment accepts and stores chequeDate and bankTransferDate when applicable.",
-        "backend/main.mo editPayment accepts and updates chequeDate and bankTransferDate when applicable.",
-        "Payment entry UI (PaymentEntryPage) sends chequeDate for cheque lines and transferDate for online lines to the backend.",
-        "Edit payment UI (EditPaymentEntryPage) allows admins to view/update the mode-specific date field for the selected mode and sends it to the backend.",
-        "Existing payment entries that predate this change continue to work with missing (null) chequeDate/bankTransferDate values."
+        "User can navigate to batch payment entry page",
+        "User can search and select multiple unpaid or partially paid invoices",
+        "Selected invoices display with their details (retailer, invoice number, amount)",
+        "User can proceed to enter payment details for the selected batch"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/payments/paymentDates.ts",
-          "operation": "create",
-          "description": "Add shared frontend helpers to (1) derive the effective Payment Date from a PaymentEntry (bankTransferDate/chequeDate/createdTimestamp fallback) and (2) convert an HTML date input value (YYYY-MM-DD) into backend Time (nanoseconds) for chequeDate/bankTransferDate."
+          "path": "frontend/src/components/payments/InvoiceSelector.tsx",
+          "operation": "modify",
+          "description": "Remove the 4-invoice limit and same-retailer restriction. Allow users to select multiple invoices from any retailer without limitations. Update the component to display selected invoices grouped by retailer with proper totals. Ensure the search functionality works correctly and users can add/remove invoices from their selection."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/payments/BatchPaymentEntryPage.tsx",
           "operation": "modify",
-          "description": "Extend useAddPayment and useEditPayment mutations to accept chequeDate and bankTransferDate variables and pass them into actor.addPayment / actor.editPayment calls (as Time | null) so the frontend can persist the entered mode-specific dates."
-        },
-        {
-          "path": "frontend/src/pages/payments/PaymentEntryPage.tsx",
-          "operation": "modify",
-          "description": "When submitting each payment line, convert and send the mode-specific date: send chequeDate for cheque lines, send bankTransferDate for online (NEFT/RTGS/UPI) lines, and send null for other modes; keep existing validation behavior and ensure older flows still work when dates are absent."
-        },
-        {
-          "path": "frontend/src/pages/payments/EditPaymentEntryPage.tsx",
-          "operation": "modify",
-          "description": "Add a conditional date input for the selected paymentMode (Cheque Date for cheque, Transfer Date for bank transfer), prefill it when available from the payment record, validate when required, and submit it via useEditPayment as chequeDate/bankTransferDate (Time | null)."
+          "description": "Update the page to handle multiple invoices from different retailers in a single batch payment. Remove any validation that restricts invoice selection. Ensure the page properly passes selected invoices to the BatchPaymentForm component and handles the submission flow for batch payments with RTGS or cheque modes."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Display a conditional Payment Date in the on-screen Reports ledger table based on payment mode.",
+      "summary": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single RTGS payment mode, capturing transaction ID and payment date",
       "acceptanceCriteria": [
-        "RetailerLedgerTable shows a Payment Date column/value derived as: bankTransferDate (if mode=bankTransfer and present) else chequeDate (if mode=cheque and present) else createdTimestamp.",
-        "When the relevant mode-specific date is not present (older records), the UI falls back to createdTimestamp without errors.",
-        "Displayed date formatting remains consistent with existing report date formatting (en-IN locale)."
+        "User can select 'Online Transfer' payment mode for batch payment",
+        "Form displays transaction ID and date fields",
+        "Total amount across all selected invoices is calculated and displayed",
+        "Payment submission creates entries for all selected invoices with the same transaction reference"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/reports/RetailerLedgerTable.tsx",
+          "path": "frontend/src/components/payments/BatchPaymentForm.tsx",
           "operation": "modify",
-          "description": "Update the table to show a single \"Payment Date\" column using the shared helper to derive the effective date per row (bankTransferDate/chequeDate/createdTimestamp fallback), keeping existing en-IN date formatting and ensuring null/undefined dates do not throw."
+          "description": "Update the form to support Online Transfer (RTGS/NEFT/UPI) payment mode for batch payments. Add transaction ID input field and bank transfer date picker for online transfer mode. Calculate and display the total amount across all selected invoices. Ensure the form validates required fields (transaction ID and date) for online transfer mode. Update the submission handler to call the backend enterBatchPayment method with the correct payment mode and transaction details."
         },
         {
-          "path": "frontend/src/utils/payments/paymentDates.ts",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Ensure the helper that derives the effective Payment Date supports missing optional fields (older records) and returns createdTimestamp as a safe fallback."
+          "description": "Add or update the mutation hook for batch payment submission to properly handle multiple invoices with online transfer payment mode. Ensure the mutation calls the backend enterBatchPayment method with correct parameters including transaction ID and bank transfer date. Include proper error handling and cache invalidation for invoices and payments after successful submission."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Update the exported CSV report to include a conditional \"Payment Date\" column matching on-screen semantics.",
+      "summary": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single cheque payment mode, capturing bank name, cheque number, and cheque date",
       "acceptanceCriteria": [
-        "exportReportsToXlsx adds/updates a CSV column named \"Payment Date\" populated as: bankTransferDate (bank transfer) else chequeDate (cheque) else createdTimestamp.",
-        "Export succeeds without runtime errors when mode-specific dates are null/missing.",
-        "CSV values for Payment Date match the on-screen semantics for the same payment rows."
+        "User can select 'Cheque' payment mode for batch payment",
+        "Form displays bank name, cheque number, and cheque date fields",
+        "Total amount across all selected invoices is calculated and displayed",
+        "Payment submission creates entries for all selected invoices with the same cheque reference"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/export/exportReportsToXlsx.ts",
+          "path": "frontend/src/components/payments/BatchPaymentForm.tsx",
           "operation": "modify",
-          "description": "Update the CSV header to include a \"Payment Date\" column (replacing the current createdTimestamp-based date column value) and populate it using the shared effective-date helper while keeping all other existing export columns and ordering unchanged; handle missing optional date fields safely."
-        },
-        {
-          "path": "frontend/src/utils/payments/paymentDates.ts",
-          "operation": "modify",
-          "description": "Expose a reusable function to compute the effective Payment Date timestamp for export usage so the CSV semantics match the on-screen ledger semantics."
+          "description": "Ensure the form supports Cheque payment mode for batch payments. Add or verify bank name input field, cheque number input field, and cheque date picker for cheque mode. The total amount calculation should already be present from REQ-2 changes. Ensure the form validates required fields (bank name, cheque number, and date) for cheque mode. Update the submission handler to properly pass cheque details to the backend enterBatchPayment method."
         }
       ]
     }

@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Eye, History, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye, History, ArrowUpDown, ArrowUp, ArrowDown, Layers } from 'lucide-react';
 import type { Invoice } from '../../backend';
 import { normalizeInvoiceStatus } from '@/utils/invoices/normalizeInvoiceStatus';
 import { calculateAgeingDays, formatAgeingDays } from '@/utils/invoices/ageingDays';
@@ -92,6 +92,13 @@ export default function InvoicesTable({ invoices }: InvoicesTableProps) {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button onClick={() => navigate({ to: '/batch-payment-entry' })} variant="outline">
+          <Layers className="h-4 w-4 mr-2" />
+          Batch Payment Entry
+        </Button>
+      </div>
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>

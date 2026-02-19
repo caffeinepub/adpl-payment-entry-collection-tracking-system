@@ -1,4 +1,4 @@
-import { PaymentEntry, PaymentMode, PaymentType } from '../../backend';
+import { PaymentEntry, PaymentMode, PaymentType, Invoice } from '../../backend';
 import { getEffectivePaymentDate } from '../payments/paymentDates';
 
 export function exportReportsToXlsx(
@@ -8,12 +8,17 @@ export function exportReportsToXlsx(
     pendingBalance: bigint;
     payments: PaymentEntry[];
   },
-  filters: any
+  filters: any,
+  allInvoices?: Invoice[]
 ) {
   const formatCurrency = (amount: bigint) => Number(amount);
 
   const formatDate = (timestamp: bigint) => {
-    return new Date(Number(timestamp) / 1000000).toLocaleString('en-IN');
+    const date = new Date(Number(timestamp) / 1000000);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   const getPaymentModeLabel = (mode: PaymentMode) => {
@@ -29,6 +34,26 @@ export function exportReportsToXlsx(
     return 'Unknown';
   };
 
+  // Create a map of invoice numbers to salesman names for quick lookup
+  const invoiceToSalesmanMap = new Map<string, string>();
+  if (allInvoices) {
+    allInvoices.forEach((invoice) => {
+      invoiceToSalesmanMap.set(invoice.invoiceNumber, invoice.salesmanName);
+    });
+  }
+
+  // Helper function to get DSE names for a payment entry
+  const getDSENames = (payment: PaymentEntry): string => {
+    const salesmanNames = new Set<string>();
+    payment.invoiceNumbers.forEach((invoiceNumber) => {
+      const salesmanName = invoiceToSalesmanMap.get(invoiceNumber);
+      if (salesmanName) {
+        salesmanNames.add(salesmanName);
+      }
+    });
+    return Array.from(salesmanNames).join('; ') || 'N/A';
+  };
+
   // Create CSV content
   const csvRows: string[] = [];
   
@@ -41,35 +66,64 @@ export function exportReportsToXlsx(
   csvRows.push(`Pending Balance,${formatCurrency(reportsData.pendingBalance)}`);
   csvRows.push('');
   csvRows.push('Payment Details');
-  csvRows.push('Payment Date,Retailer Code,Invoice Number,Type,Mode,Amount,Transaction ID,Bank Name,Cheque Number,Entered By');
+  csvRows.push('Payment Date,Retailer Code,Invoice Number(s),DSE Name,Type,Mode,Amount,Bank Name,Cheque Number,Cheque Amount,Cheque Date,Transaction ID,RTGS Date,RTGS Amount,Entered By');
 
   reportsData.payments.forEach((payment) => {
     const effectiveDate = getEffectivePaymentDate(payment);
-    const transactionId = payment.paymentMode === PaymentMode.bankTransfer && payment.transactionId 
-      ? payment.transactionId 
-      : '';
+    
+    // Cheque-specific columns
     const bankName = payment.paymentMode === PaymentMode.cheque && payment.chequeBankName 
       ? payment.chequeBankName 
       : '';
     const chequeNumber = payment.paymentMode === PaymentMode.cheque && payment.chequeNumber 
       ? payment.chequeNumber 
       : '';
+    const chequeAmount = payment.paymentMode === PaymentMode.cheque 
+      ? formatCurrency(payment.paymentAmount).toString()
+      : '';
+    const chequeDate = payment.paymentMode === PaymentMode.cheque && payment.chequeDate 
+      ? formatDate(payment.chequeDate)
+      : '';
+    
+    // Bank transfer (RTGS/NEFT/UPI) specific columns
+    const transactionId = payment.paymentMode === PaymentMode.bankTransfer && payment.transactionId 
+      ? payment.transactionId 
+      : '';
+    const rtgsDate = payment.paymentMode === PaymentMode.bankTransfer && payment.bankTransferDate 
+      ? formatDate(payment.bankTransferDate)
+      : '';
+    const rtgsAmount = payment.paymentMode === PaymentMode.bankTransfer 
+      ? formatCurrency(payment.paymentAmount).toString()
+      : '';
+
+    // Join invoice numbers with semicolon for CSV
+    const invoiceNumbers = payment.invoiceNumbers.join('; ');
+
+    // Get DSE names for this payment
+    const dseNames = getDSENames(payment);
 
     const row = [
       formatDate(effectiveDate),
       payment.retailerCode,
-      payment.invoiceNumber,
+      invoiceNumbers,
+      dseNames,
       getPaymentTypeLabel(payment.paymentType),
       getPaymentModeLabel(payment.paymentMode),
-      formatCurrency(payment.paymentAmount).toString(),
-      transactionId,
+      formatCurrency(payment.paymentAmount),
       bankName,
       chequeNumber,
+      chequeAmount,
+      chequeDate,
+      transactionId,
+      rtgsDate,
+      rtgsAmount,
       payment.enteredBy.toString(),
     ];
-    csvRows.push(row.map(cell => `"${cell}"`).join(','));
+
+    csvRows.push(row.join(','));
   });
 
+  // Create CSV blob and download
   const csvContent = csvRows.join('\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
@@ -81,5 +135,4 @@ export function exportReportsToXlsx(
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 }

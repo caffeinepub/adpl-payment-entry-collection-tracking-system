@@ -1,32 +1,26 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project involves generating/updating a report with payment-type-specific date fields.",
+  "summary": "Payment processing application requiring batch payment functionality",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Batch payment functionality not working - users cannot select multiple invoices for single payment"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-persist-mode-specific-payment-dates-in-the-backend-by-extending-the-paymententry-model-to-include-optional-chequedate-and-banktransferdate-fields-and-wire-these-through-addpayment-and-editpayment-so-the-frontend-can-store-the-entered-dates-for-cheque-and-neft-rtgs-upi-payments",
-      "title": "Persist mode-specific payment dates in the backend by extending the PaymentEntry model to include optional chequeDate and bankTransferDate fields, and wire these through addPayment and editPayment so the frontend can store the entered dates for Cheque and NEFT/RTGS/UPI payments.",
+      "id": "feature-fix-the-invoice-selector-in-batchpaymententrypage-to-allow-users-to-select-multiple-invoices-from-the-same-or-different-retailers-for-a-single-batch-payment-using-rtgs-or-cheque-payment-mode",
+      "title": "Fix the invoice selector in BatchPaymentEntryPage to allow users to select multiple invoices from the same or different retailers for a single batch payment using RTGS or cheque payment mode",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-on-screen-reports-ledger-table-to-display-a-single-payment-date-value-that-is-conditional-by-payment-mode-show-banktransferdate-for-neft-rtgs-upi-payments-show-chequedate-for-cheque-payments-otherwise-fall-back-to-the-createdtimestamp-date",
-      "title": "Update the on-screen Reports ledger table to display a single \"Payment Date\" value that is conditional by payment mode: show bankTransferDate for NEFT/RTGS/UPI payments, show chequeDate for Cheque payments, otherwise fall back to the createdTimestamp date.",
+      "id": "feature-ensure-the-batchpaymentform-accepts-and-processes-multiple-selected-invoices-with-a-single-rtgs-payment-mode-capturing-transaction-id-and-payment-date",
+      "title": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single RTGS payment mode, capturing transaction ID and payment date",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-exported-csv-report-to-include-a-payment-date-column-that-is-conditional-by-payment-mode-banktransferdate-for-neft-rtgs-upi-chequedate-for-cheque-otherwise-createdtimestamp-keep-other-existing-export-columns-unchanged",
-      "title": "Update the exported CSV report to include a \"Payment Date\" column that is conditional by payment mode: bankTransferDate for NEFT/RTGS/UPI, chequeDate for Cheque, otherwise createdTimestamp; keep other existing export columns unchanged.",
-      "reqIds": [
-        "REQ-3"
       ],
       "version": 1
     }
@@ -34,20 +28,28 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Update report column logic: show RTGS Date when payment type is RTGS, and Cheque Date when payment type is Cheque.",
+      "summary": "Enable batch payment selection - allow multiple invoices to be paid with single RTGS or cheque payment",
       "reqIds": [],
       "status": "pending"
     },
     {
+      "id": "AR-4",
+      "summary": "Ensure the BatchPaymentForm accepts and processes multiple selected invoices with a single cheque payment mode, capturing bank name, cheque number, and cheque date",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
       "id": "AR-5",
-      "summary": "Add a conditional migration for existing stable data so previously stored PaymentEntry records are upgraded with null chequeDate and null bankTransferDate fields, without changing any existing payment amounts or invoice balances.",
+      "summary": "Verify that the backend properly handles batch payment entries, updating invoice statuses and recording payment details for all invoices in the batch",
       "reqIds": [
         "REQ-4"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Show mode-specific dates (RTGS date vs Cheque date) in Reports",
+  "projectName": "Fix batch payment invoice selection functionality",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

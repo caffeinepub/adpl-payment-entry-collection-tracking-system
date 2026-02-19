@@ -6,6 +6,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import RawDataUploadPage from './pages/admin/RawDataUploadPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import PaymentEntryPage from './pages/payments/PaymentEntryPage';
+import BatchPaymentEntryPage from './pages/payments/BatchPaymentEntryPage';
 import PaymentHistoryPage from './pages/payments/PaymentHistoryPage';
 import EditPaymentEntryPage from './pages/payments/EditPaymentEntryPage';
 import ReportsPage from './pages/reports/ReportsPage';
@@ -169,6 +170,16 @@ const paymentEntryRoute = createRoute({
   ),
 });
 
+const batchPaymentEntryRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/batch-payment-entry',
+  component: () => (
+    <ProtectedRouteWrapper>
+      <BatchPaymentEntryPage />
+    </ProtectedRouteWrapper>
+  ),
+});
+
 const paymentHistoryRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/payment-history/$retailerCode',
@@ -227,6 +238,7 @@ const routeTree = rootRoute.addChildren([
   userManagementRoute,
   rawDataUploadRoute,
   paymentEntryRoute,
+  batchPaymentEntryRoute,
   paymentHistoryRoute,
   editPaymentRoute,
   reportsRoute,

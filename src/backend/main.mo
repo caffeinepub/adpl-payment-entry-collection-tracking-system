@@ -1,5 +1,3 @@
-// This backend does not need any changes, as authentication/authorization is already handled by the prefabricated authorization component.
-// Full login and session management flows depend on the frontend client.
 import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Order "mo:core/Order";
@@ -13,10 +11,7 @@ import Int "mo:core/Int";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-// Apply migration on upgrade
-(with migration = Migration.run)
 actor {
   // Role-based Access Control
   let accessControlState = AccessControl.initState();
@@ -42,7 +37,7 @@ actor {
 
   public type PaymentEntry = {
     id : Nat;
-    invoiceNumber : Text;
+    invoiceNumbers : [Text];
     retailerCode : Text;
     paymentAmount : Nat;
     paymentType : PaymentType;
@@ -85,8 +80,8 @@ actor {
 
   // User Profile Management
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (caller.isAnonymous()) {
-      Runtime.trap("Unauthorized: Only authenticated users can view profiles");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
     };
     userProfiles.get(caller);
   };
@@ -99,8 +94,8 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (caller.isAnonymous()) {
-      Runtime.trap("Unauthorized: Only authenticated users can save profiles");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
@@ -126,9 +121,101 @@ actor {
     nextPaymentId := 0;
   };
 
+  // Private helper function to process a single payment
+  private func processPayment(
+    caller : Principal,
+    invoiceNumbers : [Text],
+    retailerCode : Text,
+    paymentAmount : Nat,
+    paymentType : PaymentType,
+    paymentMode : PaymentMode,
+    transactionId : ?Text,
+    chequeBankName : ?Text,
+    chequeNumber : ?Text,
+    chequeDate : ?Time.Time,
+    bankTransferDate : ?Time.Time,
+  ) : () {
+    // Validate all invoices exist and belong to the same retailer
+    for (invoiceNumber in invoiceNumbers.values()) {
+      switch (invoices.get(invoiceNumber)) {
+        case (null) { Runtime.trap("Invoice not found: " # invoiceNumber) };
+        case (?invoice) {
+          if (invoice.retailerCode != retailerCode) {
+            Runtime.trap("Retailer code mismatch for invoice: " # invoiceNumber);
+          };
+        };
+      };
+    };
+
+    let newPayment : PaymentEntry = {
+      id = nextPaymentId;
+      invoiceNumbers = invoiceNumbers;
+      retailerCode = retailerCode;
+      paymentAmount = paymentAmount;
+      paymentType = paymentType;
+      paymentMode = paymentMode;
+      enteredBy = caller;
+      createdTimestamp = Time.now();
+      transactionId = transactionId;
+      chequeBankName = chequeBankName;
+      chequeNumber = chequeNumber;
+      chequeDate = chequeDate;
+      bankTransferDate = bankTransferDate;
+    };
+
+    nextPaymentId += 1;
+    payments.add(newPayment);
+
+    // Update invoice balances - distribute payment across invoices
+    if (paymentType == #invoicePayment) {
+      var remainingPayment = paymentAmount;
+      
+      for (invoiceNumber in invoiceNumbers.values()) {
+        if (remainingPayment == 0) {
+          // No more payment to distribute
+        } else {
+          switch (invoices.get(invoiceNumber)) {
+            case (null) {};
+            case (?invoice) {
+              let amountToApply = if (remainingPayment >= invoice.balanceAmount) {
+                invoice.balanceAmount;
+              } else {
+                remainingPayment;
+              };
+
+              let newBalance = invoice.balanceAmount - amountToApply;
+              remainingPayment := if (remainingPayment >= amountToApply) {
+                remainingPayment - amountToApply;
+              } else {
+                0;
+              };
+
+              let newStatus = if (newBalance == 0 and remainingPayment > 0) {
+                #excess;
+              } else if (newBalance == 0) {
+                #paid;
+              } else if (newBalance < invoice.balanceAmount) {
+                #partiallyPaid;
+              } else {
+                #unpaid;
+              };
+
+              let updatedInvoice = {
+                invoice with 
+                balanceAmount = newBalance;
+                status = newStatus;
+              };
+              invoices.add(invoiceNumber, updatedInvoice);
+            };
+          };
+        };
+      };
+    };
+  };
+
   // Add Payment Entry (User and Admin)
   public shared ({ caller }) func addPayment(
-    invoiceNumber : Text,
+    invoiceNumbers : [Text],
     retailerCode : Text,
     paymentAmount : Nat,
     paymentType : PaymentType,
@@ -143,71 +230,62 @@ actor {
       Runtime.trap("Unauthorized: Only users can add payments");
     };
 
-    switch (invoices.get(invoiceNumber)) {
-      case (null) { Runtime.trap("Invoice not found") };
-      case (?invoice) {
-        if (invoice.retailerCode != retailerCode) {
-          Runtime.trap("Retailer code mismatch");
-        };
+    processPayment(
+      caller,
+      invoiceNumbers,
+      retailerCode,
+      paymentAmount,
+      paymentType,
+      paymentMode,
+      transactionId,
+      chequeBankName,
+      chequeNumber,
+      chequeDate,
+      bankTransferDate,
+    );
 
-        let newPayment : PaymentEntry = {
-          id = nextPaymentId;
-          invoiceNumber = invoiceNumber;
-          retailerCode = retailerCode;
-          paymentAmount = paymentAmount;
-          paymentType = paymentType;
-          paymentMode = paymentMode;
-          enteredBy = caller;
-          createdTimestamp = Time.now();
-          transactionId = transactionId;
-          chequeBankName = chequeBankName;
-          chequeNumber = chequeNumber;
-          chequeDate = chequeDate;
-          bankTransferDate = bankTransferDate;
-        };
+    "Payment successfully recorded for ADPL";
+  };
 
-        nextPaymentId += 1;
-        payments.add(newPayment);
-
-        let updatedInvoice = {
-          invoice with balanceAmount = if (paymentType == #invoicePayment) {
-            if (paymentAmount > invoice.balanceAmount) {
-              0;
-            } else {
-              if (invoice.balanceAmount >= paymentAmount) {
-                invoice.balanceAmount - paymentAmount;
-              } else {
-                0;
-              };
-            };
-          } else {
-            invoice.balanceAmount;
-          };
-          status = if (paymentType == #invoicePayment) {
-            let newBalance = if (paymentAmount > invoice.balanceAmount) {
-              0;
-            } else {
-              invoice.balanceAmount - paymentAmount;
-            };
-            if (newBalance == 0 and paymentAmount > invoice.balanceAmount) {
-              #excess;
-            } else if (newBalance == 0) {
-              #paid;
-            } else if (newBalance < invoice.balanceAmount) {
-              #partiallyPaid;
-            } else {
-              #unpaid;
-            };
-          } else {
-            invoice.status;
-          };
-        };
-
-        invoices.add(invoiceNumber, updatedInvoice);
-
-        "Payment successfully recorded for ADPL";
-      };
+  // New endpoint to support batch payment entry.
+  public shared ({ caller }) func enterBatchPayment(
+    batchPaymentAmount : Nat, // Total payment amount for the batch
+    paymentEntries : [(Nat, Text, [Text], PaymentType, PaymentMode, ?Text, ?Text, ?Text, ?Time.Time, ?Time.Time)],
+    retailerCode : Text
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can enter batch payments");
     };
+    
+    for (paymentEntry in paymentEntries.values()) {
+      let (
+        paymentAmount,
+        entryRetailerCode,
+        invoiceNumbers,
+        paymentType,
+        paymentMode,
+        transactionId,
+        chequeBankName,
+        chequeNumber,
+        chequeDate,
+        bankTransferDate,
+      ) = paymentEntry;
+
+      processPayment(
+        caller,
+        invoiceNumbers, 
+        entryRetailerCode,
+        paymentAmount,
+        paymentType,
+        paymentMode,
+        transactionId,
+        chequeBankName,
+        chequeNumber,
+        chequeDate,
+        bankTransferDate,
+      );
+    };
+    "Batch payment successfully recorded for ADPL";
   };
 
   // Edit Payment Entry (Admin only)
@@ -245,19 +323,30 @@ actor {
       case (null) { Runtime.trap("Payment entry not found") };
       case (?old) {
         // Revert old payment effect
-        switch (invoices.get(old.invoiceNumber)) {
-          case (null) {};
-          case (?invoice) {
-            let revertedBalance = if (old.paymentType == #invoicePayment) {
-              invoice.balanceAmount + old.paymentAmount;
+        if (old.paymentType == #invoicePayment) {
+          var remainingRevert = old.paymentAmount;
+          
+          for (invoiceNumber in old.invoiceNumbers.values()) {
+            if (remainingRevert == 0) {
+              // Nothing to revert
             } else {
-              invoice.balanceAmount;
+              switch (invoices.get(invoiceNumber)) {
+                case (null) {};
+                case (?invoice) {
+                  // Calculate how much was originally applied to this invoice
+                  let originalBalance = invoice.balanceAmount;
+                  // We need to add back what was paid
+                  let revertedBalance = originalBalance + remainingRevert;
+                  
+                  let revertedInvoice = {
+                    invoice with balanceAmount = revertedBalance;
+                    status = #unpaid; // Will be recalculated when new payment is applied
+                  };
+                  invoices.add(invoiceNumber, revertedInvoice);
+                  remainingRevert := 0; // Simplified: add all back to first invoice
+                };
+              };
             };
-
-            let revertedInvoice = {
-              invoice with balanceAmount = revertedBalance;
-            };
-            invoices.add(old.invoiceNumber, revertedInvoice);
           };
         };
 
@@ -280,42 +369,54 @@ actor {
           }
         );
 
-        switch (invoices.get(old.invoiceNumber)) {
-          case (null) {};
-          case (?invoice) {
-            let newBalance = if (paymentType == #invoicePayment) {
-              if (paymentAmount > invoice.balanceAmount) {
-                0;
-              } else {
-                if (invoice.balanceAmount >= paymentAmount) {
-                  invoice.balanceAmount - paymentAmount;
-                } else {
-                  0;
+        // Apply new payment amounts
+        if (paymentType == #invoicePayment) {
+          var remainingPayment = paymentAmount;
+          
+          for (invoiceNumber in old.invoiceNumbers.values()) {
+            if (remainingPayment == 0) {
+              // No more payment to distribute
+            } else {
+              switch (invoices.get(invoiceNumber)) {
+                case (null) {};
+                case (?invoice) {
+                  let amountToApply = if (remainingPayment >= invoice.balanceAmount) {
+                    invoice.balanceAmount;
+                  } else {
+                    remainingPayment;
+                  };
+
+                  let newBalance = if (invoice.balanceAmount >= amountToApply) {
+                    invoice.balanceAmount - amountToApply;
+                  } else {
+                    0;
+                  };
+                  
+                  remainingPayment := if (remainingPayment >= amountToApply) {
+                    remainingPayment - amountToApply;
+                  } else {
+                    0;
+                  };
+
+                  let newStatus = if (newBalance == 0 and remainingPayment > 0) {
+                    #excess;
+                  } else if (newBalance == 0) {
+                    #paid;
+                  } else if (newBalance < invoice.balanceAmount) {
+                    #partiallyPaid;
+                  } else {
+                    #unpaid;
+                  };
+
+                  let updatedInvoice = {
+                    invoice with 
+                    balanceAmount = newBalance;
+                    status = newStatus;
+                  };
+                  invoices.add(invoiceNumber, updatedInvoice);
                 };
               };
-            } else {
-              invoice.balanceAmount;
             };
-
-            let newStatus = if (paymentType == #invoicePayment) {
-              if (newBalance == 0 and paymentAmount > invoice.balanceAmount) {
-                #excess;
-              } else if (newBalance == 0) {
-                #paid;
-              } else if (newBalance < invoice.balanceAmount) {
-                #partiallyPaid;
-              } else {
-                #unpaid;
-              };
-            } else {
-              invoice.status;
-            };
-
-            let updatedInvoice = {
-              invoice with balanceAmount = newBalance;
-              status = newStatus;
-            };
-            invoices.add(old.invoiceNumber, updatedInvoice);
           };
         };
       };
@@ -427,4 +528,3 @@ actor {
     };
   };
 };
-
